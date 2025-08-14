@@ -4,30 +4,22 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bora - Eventos em Piracicaba</title>
-    
-    <!-- Link para o Manifesto do PWA -->
     <link rel="manifest" href="manifest.json">
-    
-    <!-- Link para o arquivo de Estilos (CSS) -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <!-- ... (todo o conteúdo do seu app, do .phone-container até o .modal, continua igual) ... -->
+    <!-- Todo o seu HTML do .phone-container até o .modal continua aqui, sem alterações -->
     <div class="phone-container">
         <div class="screen">
             <div class="status-bar">
                 <span>9:41</span>
                 <span>📶 📶 📶 🔋</span>
             </div>
-            
             <div class="header">
                 <div class="logo">Bora</div>
                 <div class="subtitle">Encontre os melhores eventos</div>
-                <div class="location">
-                    📍 Piracicaba, SP
-                </div>
+                <div class="location">📍 Piracicaba, SP</div>
             </div>
-            
             <div class="content">
                 <div class="filter-tabs">
                     <div class="tab active" data-category="Todos">Todos</div>
@@ -37,36 +29,17 @@
                     <div class="tab" data-category="Rodeios">Rodeios</div>
                     <div class="tab" data-category="Cultura">Cultura</div>
                 </div>
-                
                 <div id="event-list"></div>
-
             </div>
-            
-            <div class="floating-button" onclick="openModal()">
-                ➕
-            </div>
-            
+            <div class="floating-button" onclick="openModal()">➕</div>
             <div class="bottom-nav">
-                <div class="nav-item active">
-                    <div class="nav-icon">🏠</div>
-                    <div class="nav-label">Início</div>
-                </div>
-                <div class="nav-item">
-                    <div class="nav-icon">📅</div>
-                    <div class="nav-label">Meus Eventos</div>
-                </div>
-                <div class="nav-item">
-                    <div class="nav-icon">📍</div>
-                    <div class="nav-label">Próximos</div>
-                </div>
-                <div class="nav-item">
-                    <div class="nav-icon">👤</div>
-                    <div class="nav-label">Perfil</div>
-                </div>
+                <div class="nav-item active"><div class="nav-icon">🏠</div><div class="nav-label">Início</div></div>
+                <div class="nav-item"><div class="nav-icon">📅</div><div class="nav-label">Meus Eventos</div></div>
+                <div class="nav-item"><div class="nav-icon">📍</div><div class="nav-label">Próximos</div></div>
+                <div class="nav-item"><div class="nav-icon">👤</div><div class="nav-label">Perfil</div></div>
             </div>
         </div>
     </div>
-    
     <div class="modal" id="eventModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -75,58 +48,28 @@
                 <p>Divulgue seu evento em Piracicaba</p>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label class="form-label">Nome do Evento</label>
-                    <input type="text" class="form-input" placeholder="Ex: Festa da Faculdade">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Data e Hora</label>
-                    <input type="datetime-local" class="form-input">
-                </div>
-                
-                <div class="form-group">
-                    <label class="form-label">Local</label>
-                    <input type="text" class="form-input" placeholder="Endereço do evento">
-                </div>
-                
+                <div class="form-group"><label class="form-label">Nome do Evento</label><input type="text" class="form-input" placeholder="Ex: Festa da Faculdade"></div>
+                <div class="form-group"><label class="form-label">Data e Hora</label><input type="datetime-local" class="form-input"></div>
+                <div class="form-group"><label class="form-label">Local</label><input type="text" class="form-input" placeholder="Endereço do evento"></div>
                 <div class="form-group">
                     <label class="form-label">Escolha seu plano:</label>
                     <div class="pricing-options">
-                        <div class="pricing-option" onclick="selectPlan(this)">
-                            <div class="price">GRÁTIS</div>
-                            <div class="features">Evento básico  
-Alcance limitado</div>
-                        </div>
-                        <div class="pricing-option selected" onclick="selectPlan(this)">
-                            <div class="price">R$ 25</div>
-                            <div class="features">Destaque  
+                        <div class="pricing-option" onclick="selectPlan(this)"><div class="price">GRÁTIS</div><div class="features">Evento básico  
+Alcance limitado</div></div>
+                        <div class="pricing-option selected" onclick="selectPlan(this)"><div class="price">R$ 25</div><div class="features">Destaque  
 + Alcance  
-Analytics</div>
-                        </div>
-                        <div class="pricing-option" onclick="selectPlan(this)">
-                            <div class="price">R$ 50</div>
-                            <div class="features">Topo do feed  
+Analytics</div></div>
+                        <div class="pricing-option" onclick="selectPlan(this)"><div class="price">R$ 50</div><div class="features">Topo do feed  
 Push notification  
-Analytics completos</div>
-                        </div>
+Analytics completos</div></div>
                     </div>
                 </div>
-                
                 <button class="submit-btn">Publicar Evento - R$ 25</button>
             </div>
         </div>
     </div>
     
-    <!-- ===================================================================== -->
-    <!-- TENTATIVA FINAL: USANDO 'defer' PARA GARANTIR A ORDEM -->
-    <!-- ===================================================================== -->
-
-    <!-- 1. Carrega as ferramentas do Firebase -->
-    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
-    
-    <!-- 2. Carrega nosso script, que também esperará -->
-    <script defer src="script.js"></script>
+    <!-- MUDANÇA IMPORTANTE: Adicionamos type="module" para usar a sintaxe moderna -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
