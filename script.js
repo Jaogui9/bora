@@ -1,15 +1,14 @@
 // =================================================================
-// CONFIGURAÇÃO DO FIREBASE (USANDO MÓDULOS MODERNOS)
+// CONFIGURAÇÃO DO FIREBASE (VERSÃO FINAL REVISADA)
 // =================================================================
 
-// 1. Importa as funções necessárias diretamente dos links do Firebase
-// <<< MUDANÇA IMPORTANTE: Adicionamos 'getFirestore' e 'collection' aqui
+// 1. Importa as funções necessárias
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 2. Suas chaves de configuração (as mesmas de antes )
+// 2. Suas chaves de configuração
 const firebaseConfig = {
-  apiKey: "AIzaSyDjEdtxSyam1wkJolyLDTbvJXt33UwCL0",
+  apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
   authDomain: "bora-app-piracicaba.firebaseapp.com",
   projectId: "bora-app-piracicaba",
   storageBucket: "bora-app-piracicaba.firebasestorage.app",
@@ -18,11 +17,11 @@ const firebaseConfig = {
 };
 
 // 3. Inicializa o Firebase e o Firestore
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app); // <<< MUDANÇA IMPORTANTE: Esta linha conecta ao banco de dados
+const app = initializeApp(firebaseConfig );
+const db = getFirestore(app);
 
 // =================================================================
-// FUNÇÃO PARA RENDERIZAR (DESENHAR) OS EVENTOS NA TELA
+// FUNÇÃO PARA RENDERIZAR OS EVENTOS NA TELA
 // =================================================================
 function renderEvents(eventsToRender) {
     const eventList = document.getElementById('event-list');
