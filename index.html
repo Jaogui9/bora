@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- ... (todo o conteúdo do seu app, do .phone-container até o .modal, continua igual) ... -->
     <div class="phone-container">
         <div class="screen">
             <div class="status-bar">
@@ -37,7 +38,6 @@
                     <div class="tab" data-category="Cultura">Cultura</div>
                 </div>
                 
-                <!-- Os cards de evento serão inseridos aqui pelo JavaScript -->
                 <div id="event-list"></div>
 
             </div>
@@ -67,7 +67,6 @@
         </div>
     </div>
     
-    <!-- Modal para criar evento -->
     <div class="modal" id="eventModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -120,14 +119,14 @@ Analytics completos</div>
     </div>
     
     <!-- ===================================================================== -->
-    <!-- ORDEM CORRIGIDA: PRIMEIRO O FIREBASE, DEPOIS O NOSSO SCRIPT -->
+    <!-- TENTATIVA FINAL: USANDO 'defer' PARA GARANTIR A ORDEM -->
     <!-- ===================================================================== -->
 
     <!-- 1. Carrega as ferramentas do Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script defer src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
     
-    <!-- 2. AGORA SIM, carrega o nosso arquivo de Funcionalidades (JavaScript ) -->
-    <script src="script.js"></script>
+    <!-- 2. Carrega nosso script, que também esperará -->
+    <script defer src="script.js"></script>
 </body>
 </html>
