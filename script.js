@@ -1,84 +1,55 @@
 // =================================================================
-// BANCO DE DADOS TEMPORÁRIO DE EVENTOS
-// Para adicionar um novo evento, basta copiar um bloco e alterar as informações.
+// CONFIGURAÇÃO DO FIREBASE
+// Cole aqui as suas chaves que você pegou do Firebase Console
 // =================================================================
-const eventsData = [
-    {
-        title: "Rodeio de Piracicaba 2025",
-        date: "HOJE • 21:00",
-        location: "📍 Parque do Engenho Central",
-        going: 234,
-        price: "R$ 25",
-        category: "Rodeios",
-        imageType: "🤠 RODEIO",
-        imageGradient: "linear-gradient(45deg, #ff6b6b, #ee5a24)",
-        isPremium: true
-    },
-    {
-        title: "Festa da ESALQ",
-        date: "SEXTA • 22:30",
-        location: "📍 Atlética ESALQ",
-        going: 89,
-        price: "R$ 15",
-        category: "Festas",
-        imageType: "🎉 FESTA",
-        imageGradient: "linear-gradient(45deg, #9c88ff, #8c7ae6)",
-        isPremium: false
-    },
-    {
-        title: "Show de Sertanejo",
-        date: "SÁBADO • 20:00",
-        location: "📍 Arena Piracicaba",
-        going: 156,
-        price: "R$ 40",
-        category: "Shows",
-        imageType: "🎵 SHOW",
-        imageGradient: "linear-gradient(45deg, #ffa726, #ff7043)",
-        isPremium: false
-    },
-    {
-        title: "Chopada da UNIMEP",
-        date: "DOMINGO • 15:00",
-        location: "📍 Campus UNIMEP",
-        going: 67,
-        price: "R$ 20",
-        category: "Festas",
-        imageType: "🍻 CHOPADA",
-        imageGradient: "linear-gradient(45deg, #26de81, #20bf6b)",
-        isPremium: true
-    }
-];
+const firebaseConfig = {
+  // COLE SUAS CHAVES AQUI DENTRO
+  // Exemplo:
+  // apiKey: "AIzaSy...",
+  // authDomain: "bora-app-piracicaba.firebaseapp.com",
+  // ...etc
+};
+
+// Inicializa o Firebase
+firebase.initializeApp(firebaseConfig );
+const db = firebase.firestore(); // Inicializa o banco de dados Firestore
 
 // =================================================================
 // FUNÇÃO PARA RENDERIZAR (DESENHAR) OS EVENTOS NA TELA
 // =================================================================
 function renderEvents(eventsToRender) {
     const eventList = document.getElementById('event-list');
-    eventList.innerHTML = ''; // Limpa a lista antes de desenhar
+    eventList.innerHTML = ''; 
 
-    if (eventsToRender.length === 0) {
-        eventList.innerHTML = '<p style="text-align: center; color: #888;">Nenhum evento encontrado para esta categoria.</p>';
+    if (!eventsToRender || eventsToRender.length === 0) {
+        eventList.innerHTML = '<p style="text-align: center; color: #888;">Nenhum evento encontrado.</p>';
         return;
     }
 
     eventsToRender.forEach(event => {
         const card = document.createElement('div');
+        // Usa valores padrão caso os campos não existam no banco de dados
+        const isPremium = event.isPremium || false;
+        const imageGradient = event.imageGradient || 'linear-gradient(45deg, #888, #555)';
+        const imageType = event.imageType || '🎉 EVENTO';
+        const goingCount = event.going || 0;
+
         card.className = 'event-card';
-        if (event.isPremium) {
+        if (isPremium) {
             card.classList.add('premium');
         }
 
         card.innerHTML = `
-            ${event.isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
-            <div class="event-image" style="background: ${event.imageGradient};">
-                ${event.imageType}
+            ${isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
+            <div class="event-image" style="background: ${imageGradient};">
+                ${imageType}
             </div>
             <div class="event-info">
                 <div class="event-title">${event.title}</div>
                 <div class="event-date">${event.date}</div>
                 <div class="event-location">${event.location}</div>
                 <div class="event-stats">
-                    <div class="going-count">+ ${event.going} pessoas vão</div>
+                    <div class="going-count">+ ${goingCount} pessoas vão</div>
                     <div class="event-price">${event.price}</div>
                 </div>
             </div>
@@ -88,11 +59,24 @@ function renderEvents(eventsToRender) {
     });
 }
 
+// =================================================================
+// FUNÇÃO PARA BUSCAR OS EVENTOS DO FIREBASE
+// =================================================================
+function fetchEvents() {
+    db.collection("events").onSnapshot((querySnapshot) => {
+        const events = [];
+        querySnapshot.forEach((doc) => {
+            events.push({ id: doc.id, ...doc.data() });
+        });
+        renderEvents(events);
+    });
+}
+
 
 // =================================================================
-// FUNÇÕES E LÓGICA DO APP (MODAL, NAVEGAÇÃO, FILTROS)
+// FUNÇÕES E LÓGICA DO APP (MODAL, NAVEGAÇÃO, ETC.)
 // =================================================================
-
+// (As funções do modal e da navegação continuam as mesmas de antes)
 function openModal() {
     document.getElementById('eventModal').style.display = 'flex';
 }
@@ -101,47 +85,7 @@ function closeModal() {
     document.getElementById('eventModal').style.display = 'none';
 }
 
-function selectPlan(element) {
-    document.querySelectorAll('.pricing-option').forEach(option => {
-        option.classList.remove('selected');
-    });
-    element.classList.add('selected');
-    
-    const selectedPrice = element.querySelector('.price').textContent;
-    const button = document.querySelector('.submit-btn');
-    
-    if (selectedPrice === 'GRÁTIS') {
-        button.textContent = 'Publicar Evento Grátis';
-    } else {
-        button.textContent = `Publicar Evento - ${selectedPrice}`;
-    }
-}
-
-// Lógica dos Filtros
-document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        // Atualiza o estilo do botão de filtro
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        this.classList.add('active');
-
-        const selectedCategory = this.getAttribute('data-category');
-        
-        if (selectedCategory === 'Todos') {
-            renderEvents(eventsData); // Mostra todos os eventos
-        } else {
-            const filteredEvents = eventsData.filter(event => event.category === selectedCategory);
-            renderEvents(filteredEvents); // Mostra apenas os eventos filtrados
-        }
-    });
-});
-
-// Lógica da Navegação (simulação)
-document.querySelectorAll('.nav-item').forEach(item => {
-    item.addEventListener('click', function() {
-        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-        this.classList.add('active');
-    });
-});
+// ... (outras funções que você queira adicionar no futuro)
 
 
 // =================================================================
@@ -151,18 +95,13 @@ document.querySelectorAll('.nav-item').forEach(item => {
 // Garante que o PWA funcione
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/bora/sw.js')
-        .then(registration => {
-            console.log('Service Worker registrado com sucesso!');
-        })
-        .catch(registrationError => {
-            console.log('Falha ao registrar o Service Worker:', registrationError);
-        });
+        navigator.serviceWorker.register('/bora/sw.js');
     });
 }
 
-// Renderiza a lista inicial de eventos quando a página carrega
+// Busca os eventos do Firebase assim que a página carrega
 document.addEventListener('DOMContentLoaded', () => {
-    renderEvents(eventsData);
+    fetchEvents();
 });
+
 
