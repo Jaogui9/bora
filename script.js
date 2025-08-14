@@ -1,6 +1,12 @@
 // =================================================================
-// CONFIGURAÇÃO DO FIREBASE (Sintaxe Corrigida)
+// CONFIGURAÇÃO DO FIREBASE (USANDO MÓDULOS MODERNOS)
 // =================================================================
+
+// 1. Importa as funções necessárias diretamente dos links do Firebase
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 2. Suas chaves de configuração (as mesmas de antes )
 const firebaseConfig = {
   apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
   authDomain: "bora-app-piracicaba.firebaseapp.com",
@@ -10,9 +16,9 @@ const firebaseConfig = {
   appId: "1:193650879035:web:fc51106b02ac4cb0eb8a1e"
 };
 
-// Inicializa o Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore(); // Inicializa o banco de dados Firestore
+// 3. Inicializa o Firebase e o Firestore
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 // =================================================================
 // FUNÇÃO PARA RENDERIZAR (DESENHAR) OS EVENTOS NA TELA
@@ -22,13 +28,12 @@ function renderEvents(eventsToRender) {
     eventList.innerHTML = ''; 
 
     if (!eventsToRender || eventsToRender.length === 0) {
-        eventList.innerHTML = '<p style="text-align: center; color: #888;">Nenhum evento encontrado. Verifique sua conexão ou tente mais tarde.</p>';
+        eventList.innerHTML = '<p style="text-align: center; color: #888;">Nenhum evento encontrado.</p>';
         return;
     }
 
     eventsToRender.forEach(event => {
         const card = document.createElement('div');
-        // Usa valores padrão caso os campos não existam no banco de dados
         const isPremium = event.isPremium || false;
         const imageGradient = event.imageGradient || 'linear-gradient(45deg, #888, #555)';
         const imageType = event.imageType || '🎉 EVENTO';
@@ -63,7 +68,8 @@ function renderEvents(eventsToRender) {
 // FUNÇÃO PARA BUSCAR OS EVENTOS DO FIREBASE
 // =================================================================
 function fetchEvents() {
-    db.collection("events").onSnapshot((querySnapshot) => {
+    const eventsCollection = collection(db, "events");
+    onSnapshot(eventsCollection, (querySnapshot) => {
         const events = [];
         querySnapshot.forEach((doc) => {
             events.push({ id: doc.id, ...doc.data() });
@@ -72,23 +78,22 @@ function fetchEvents() {
     }, (error) => {
         console.error("Erro ao buscar eventos: ", error);
         const eventList = document.getElementById('event-list');
-        eventList.innerHTML = '<p style="text-align: center; color: #d9534f;">Não foi possível carregar os eventos. Verifique o console para mais detalhes.</p>';
+        eventList.innerHTML = '<p style="text-align: center; color: #d9534f;">Não foi possível carregar os eventos.</p>';
     });
 }
 
-
 // =================================================================
-// FUNÇÕES E LÓGICA DO APP (MODAL, NAVEGAÇÃO, ETC.)
+// FUNÇÕES GLOBAIS (PRECISAM ESTAR NO 'window' por causa do Módulo)
 // =================================================================
-function openModal() {
+window.openModal = function() {
     document.getElementById('eventModal').style.display = 'flex';
 }
 
-function closeModal() {
+window.closeModal = function() {
     document.getElementById('eventModal').style.display = 'none';
 }
 
-function selectPlan(element) {
+window.selectPlan = function(element) {
     document.querySelectorAll('.pricing-option').forEach(option => {
         option.classList.remove('selected');
     });
@@ -104,6 +109,9 @@ function selectPlan(element) {
     }
 }
 
+// =================================================================
+// LÓGICA DOS FILTROS E NAVEGAÇÃO
+// =================================================================
 document.querySelectorAll('.tab').forEach(tab => {
     tab.addEventListener('click', function() {
         document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -118,22 +126,14 @@ document.querySelectorAll('.nav-item').forEach(item => {
     });
 });
 
-
 // =================================================================
 // INICIALIZAÇÃO DO APP
 // =================================================================
-
-// Garante que o PWA funcione
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
         navigator.serviceWorker.register('/bora/sw.js');
     });
 }
 
-// Busca os eventos do Firebase assim que a página carrega
-document.addEventListener('DOMContentLoaded', () => {
-    fetchEvents();
-});
-
-
+fetchEvents(); // Busca os eventos do Firebase
 
