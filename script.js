@@ -3,12 +3,13 @@
 // =================================================================
 
 // 1. Importa as funções necessárias diretamente dos links do Firebase
+// <<< MUDANÇA IMPORTANTE: Adicionamos 'getFirestore' e 'collection' aqui
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // 2. Suas chaves de configuração (as mesmas de antes )
 const firebaseConfig = {
-  apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
+  apiKey: "AIzaSyDjEdtxSyam1wkJolyLDTbvJXt33UwCL0",
   authDomain: "bora-app-piracicaba.firebaseapp.com",
   projectId: "bora-app-piracicaba",
   storageBucket: "bora-app-piracicaba.firebasestorage.app",
@@ -18,7 +19,7 @@ const firebaseConfig = {
 
 // 3. Inicializa o Firebase e o Firestore
 const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+const db = getFirestore(app); // <<< MUDANÇA IMPORTANTE: Esta linha conecta ao banco de dados
 
 // =================================================================
 // FUNÇÃO PARA RENDERIZAR (DESENHAR) OS EVENTOS NA TELA
@@ -136,4 +137,3 @@ if ('serviceWorker' in navigator) {
 }
 
 fetchEvents(); // Busca os eventos do Firebase
-
