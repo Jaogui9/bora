@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bora - Eventos em Piracicaba</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .phone-container {
+            width: 375px;
+            height: 667px;
+            background: #000;
+            border-radius: 30px;
+            padding: 10px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: #ffffff;
+            border-radius: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .status-bar {
+            background: #000;
+            color: white;
+            padding: 8px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        
+        .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        
+        .location {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+        
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+        
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            overflow-x: auto;
+        }
+        
+        .tab {
+            background: #f0f0f0;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .event-card {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .event-card:hover {
+            transform: translateY(-2px);
+        }
+        
+        .event-card.premium {
+            border: 2px solid #FFD700;
+            position: relative;
+        }
+        
+        .premium-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: #FFD700;
+            color: #000;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: bold;
+            z-index: 2;
+        }
+        
+        .event-image {
+            width: 100%;
+            height: 120px;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 18px;
+            font-weight: bold;
+            position: relative;
+        }
+        
+        .event-info {
+            padding: 15px;
+        }
+        
+        .event-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .event-date {
+            color: #667eea;
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .event-location {
+            color: #666;
+            font-size: 12px;
+            margin-bottom: 10px;
+        }
+        
+        .event-stats {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .going-count {
+            font-size: 12px;
+            color: #28a745;
+            font-weight: 600;
+        }
+        
+        .event-price {
+            background: #667eea;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        
+        .bottom-nav {
+            background: white;
+            border-top: 1px solid #eee;
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 0;
+        }
+        
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 10px;
+            transition: all 0.2s;
+        }
+        
+        .nav-item.active {
+            background: #f0f0ff;
+            color: #667eea;
+        }
+        
+        .nav-icon {
+            font-size: 20px;
+            margin-bottom: 3px;
+        }
+        
+        .nav-label {
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .floating-button {
+            position: absolute;
+            bottom: 80px;
+            right: 20px;
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s;
+        }
+        
+        .floating-button:hover {
+            transform: scale(1.1);
+        }
+        
+        .modal {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background: white;
+            width: 90%;
+            max-height: 80%;
+            border-radius: 20px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .modal-body {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+        
+        .pricing-options {
+            display: flex;
+            gap: 10px;
+            margin: 15px 0;
+        }
+        
+        .pricing-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #eee;
+            border-radius: 10px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .pricing-option.selected {
+            border-color: #667eea;
+            background: #f0f0ff;
+        }
+        
+        .price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .features {
+            font-size: 11px;
+            color: #666;
+            margin-top: 5px;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 📶 📶 🔋</span>
+            </div>
+            
+            <div class="header">
+                <div class="logo">Bora</div>
+                <div class="subtitle">Encontre os melhores eventos</div>
+                <div class="location">
+                    📍 Piracicaba, SP
+                </div>
+            </div>
+            
+            <div class="content">
+                <div class="filter-tabs">
+                    <div class="tab active">Todos</div>
+                    <div class="tab">Hoje</div>
+                    <div class="tab">Festas</div>
+                    <div class="tab">Shows</div>
+                    <div class="tab">Rodeios</div>
+                    <div class="tab">Cultura</div>
+                </div>
+                
+                <div class="event-card premium">
+                    <div class="premium-badge">PREMIUM</div>
+                    <div class="event-image" style="background: linear-gradient(45deg, #ff6b6b, #ee5a24);">
+                        🤠 RODEIO
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">Rodeio de Piracicaba 2025</div>
+                        <div class="event-date">HOJE • 21:00</div>
+                        <div class="event-location">📍 Parque do Engenho Central</div>
+                        <div class="event-stats">
+                            <div class="going-count">+ 234 pessoas vão</div>
+                            <div class="event-price">R$ 25</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-image" style="background: linear-gradient(45deg, #9c88ff, #8c7ae6);">
+                        🎉 FESTA
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">Festa da ESALQ</div>
+                        <div class="event-date">SEXTA • 22:30</div>
+                        <div class="event-location">📍 Atlética ESALQ</div>
+                        <div class="event-stats">
+                            <div class="going-count">+ 89 pessoas vão</div>
+                            <div class="event-price">R$ 15</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="event-card">
+                    <div class="event-image" style="background: linear-gradient(45deg, #ffa726, #ff7043);">
+                        🎵 SHOW
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">Show de Sertanejo</div>
+                        <div class="event-date">SÁBADO • 20:00</div>
+                        <div class="event-location">📍 Arena Piracicaba</div>
+                        <div class="event-stats">
+                            <div class="going-count">+ 156 pessoas vão</div>
+                            <div class="event-price">R$ 40</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="event-card premium">
+                    <div class="premium-badge">PREMIUM</div>
+                    <div class="event-image" style="background: linear-gradient(45deg, #26de81, #20bf6b);">
+                        🍻 CHOPADA
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">Chopada da UNIMEP</div>
+                        <div class="event-date">DOMINGO • 15:00</div>
+                        <div class="event-location">📍 Campus UNIMEP</div>
+                        <div class="event-stats">
+                            <div class="going-count">+ 67 pessoas vão</div>
+                            <div class="event-price">R$ 20</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="floating-button" onclick="openModal()">
+                ➕
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item active">
+                    <div class="nav-icon">🏠</div>
+                    <div class="nav-label">Início</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📅</div>
+                    <div class="nav-label">Meus Eventos</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">📍</div>
+                    <div class="nav-label">Próximos</div>
+                </div>
+                <div class="nav-item">
+                    <div class="nav-icon">👤</div>
+                    <div class="nav-label">Perfil</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para criar evento -->
+    <div class="modal" id="eventModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close-btn" onclick="closeModal()">&times;</span>
+                <h2>Criar Evento</h2>
+                <p>Divulgue seu evento em Piracicaba</p>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Nome do Evento</label>
+                    <input type="text" class="form-input" placeholder="Ex: Festa da Faculdade">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Data e Hora</label>
+                    <input type="datetime-local" class="form-input">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Local</label>
+                    <input type="text" class="form-input" placeholder="Endereço do evento">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Escolha seu plano:</label>
+                    <div class="pricing-options">
+                        <div class="pricing-option" onclick="selectPlan(this)">
+                            <div class="price">GRÁTIS</div>
+                            <div class="features">Evento básico<br>Alcance limitado</div>
+                        </div>
+                        <div class="pricing-option selected" onclick="selectPlan(this)">
+                            <div class="price">R$ 25</div>
+                            <div class="features">Destaque<br>+ Alcance<br>Analytics</div>
+                        </div>
+                        <div class="pricing-option" onclick="selectPlan(this)">
+                            <div class="price">R$ 50</div>
+                            <div class="features">Topo do feed<br>Push notification<br>Analytics completos</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <button class="submit-btn">Publicar Evento - R$ 25</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        function openModal() {
+            document.getElementById('eventModal').style.display = 'flex';
+        }
+        
+        function closeModal() {
+            document.getElementById('eventModal').style.display = 'none';
+        }
+        
+        function selectPlan(element) {
+            document.querySelectorAll('.pricing-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            element.classList.add('selected');
+            
+            const prices = ['GRÁTIS', 'R$ 25', 'R$ 50'];
+            const selectedPrice = element.querySelector('.price').textContent;
+            const button = document.querySelector('.submit-btn');
+            
+            if (selectedPrice === 'GRÁTIS') {
+                button.textContent = 'Publicar Evento Grátis';
+            } else {
+                button.textContent = `Publicar Evento - ${selectedPrice}`;
+            }
+        }
+        
+        // Simular clique nos tabs
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', function() {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Simular navegação
+        document.querySelectorAll('.nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
