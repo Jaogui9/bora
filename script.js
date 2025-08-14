@@ -1,17 +1,17 @@
 // =================================================================
-// CONFIGURAÇÃO DO FIREBASE
-// Cole aqui as suas chaves que você pegou do Firebase Console
+// CONFIGURAÇÃO DO FIREBASE (Sintaxe Corrigida)
 // =================================================================
 const firebaseConfig = {
-  // COLE SUAS CHAVES AQUI DENTRO
-  // Exemplo:
-  // apiKey: "AIzaSy...",
-  // authDomain: "bora-app-piracicaba.firebaseapp.com",
-  // ...etc
+  apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
+  authDomain: "bora-app-piracicaba.firebaseapp.com",
+  projectId: "bora-app-piracicaba",
+  storageBucket: "bora-app-piracicaba.firebasestorage.app",
+  messagingSenderId: "193650879035",
+  appId: "1:193650879035:web:fc51106b02ac4cb0eb8a1e"
 };
 
 // Inicializa o Firebase
-firebase.initializeApp(firebaseConfig );
+firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore(); // Inicializa o banco de dados Firestore
 
 // =================================================================
@@ -22,7 +22,7 @@ function renderEvents(eventsToRender) {
     eventList.innerHTML = ''; 
 
     if (!eventsToRender || eventsToRender.length === 0) {
-        eventList.innerHTML = '<p style="text-align: center; color: #888;">Nenhum evento encontrado.</p>';
+        eventList.innerHTML = '<p style="text-align: center; color: #888;">Nenhum evento encontrado. Verifique sua conexão ou tente mais tarde.</p>';
         return;
     }
 
@@ -69,6 +69,10 @@ function fetchEvents() {
             events.push({ id: doc.id, ...doc.data() });
         });
         renderEvents(events);
+    }, (error) => {
+        console.error("Erro ao buscar eventos: ", error);
+        const eventList = document.getElementById('event-list');
+        eventList.innerHTML = '<p style="text-align: center; color: #d9534f;">Não foi possível carregar os eventos. Verifique o console para mais detalhes.</p>';
     });
 }
 
@@ -76,7 +80,6 @@ function fetchEvents() {
 // =================================================================
 // FUNÇÕES E LÓGICA DO APP (MODAL, NAVEGAÇÃO, ETC.)
 // =================================================================
-// (As funções do modal e da navegação continuam as mesmas de antes)
 function openModal() {
     document.getElementById('eventModal').style.display = 'flex';
 }
@@ -85,7 +88,35 @@ function closeModal() {
     document.getElementById('eventModal').style.display = 'none';
 }
 
-// ... (outras funções que você queira adicionar no futuro)
+function selectPlan(element) {
+    document.querySelectorAll('.pricing-option').forEach(option => {
+        option.classList.remove('selected');
+    });
+    element.classList.add('selected');
+    
+    const selectedPrice = element.querySelector('.price').textContent;
+    const button = document.querySelector('.submit-btn');
+    
+    if (selectedPrice === 'GRÁTIS') {
+        button.textContent = 'Publicar Evento Grátis';
+    } else {
+        button.textContent = `Publicar Evento - ${selectedPrice}`;
+    }
+}
+
+document.querySelectorAll('.tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
+
+document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+        document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+        this.classList.add('active');
+    });
+});
 
 
 // =================================================================
@@ -103,5 +134,6 @@ if ('serviceWorker' in navigator) {
 document.addEventListener('DOMContentLoaded', () => {
     fetchEvents();
 });
+
 
 
