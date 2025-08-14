@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+    <link rel="manifest" href="manifest.json">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bora - Eventos em Piracicaba</title>
@@ -564,5 +565,24 @@
             });
         });
     </script>
+
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/bora/sw.js')
+        .then(registration => {
+          console.log('Service Worker registrado com sucesso!');
+        })
+        .catch(registrationError => {
+          console.log('Falha ao registrar o Service Worker:', registrationError);
+        });
+    });
+  }
+</script>
+
+
+
+    
 </body>
 </html>
