@@ -5,7 +5,42 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bora - Eventos em Piracicaba</title>
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="style.css">
+    
+    <!-- O CSS ESTÁ TODO AQUI DENTRO -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Arial', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .phone-container { width: 375px; height: 667px; background: #000; border-radius: 30px; padding: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
+        .screen { width: 100%; height: 100%; background: #ffffff; border-radius: 25px; overflow: hidden; display: flex; flex-direction: column; }
+        .status-bar { background: #000; color: white; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
+        .main-content { flex: 1; position: relative; }
+        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; background-color: #fff; }
+        .page.active { display: flex; }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; flex-shrink: 0; }
+        .logo { font-size: 32px; font-weight: bold; }
+        .subtitle { font-size: 14px; opacity: 0.9; }
+        .location { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 12px; }
+        .content { flex: 1; overflow-y: auto; padding: 15px; }
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
+        .tab { background: #f0f0f0; padding: 8px 16px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; transition: all 0.3s; }
+        .tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .event-card { background: white; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; }
+        .premium-badge { position: absolute; top: 10px; right: 10px; background: #FFD700; color: #000; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; z-index: 2; }
+        .event-image { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; position: relative; }
+        .event-info { padding: 15px; }
+        .event-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #333; }
+        .event-date { color: #667eea; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
+        .event-location { color: #666; font-size: 12px; margin-bottom: 10px; }
+        .event-stats { display: flex; justify-content: space-between; align-items: center; }
+        .going-count { font-size: 12px; color: #28a745; font-weight: 600; }
+        .event-price { background: #667eea; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .bottom-nav { background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; flex-shrink: 0; }
+        .nav-item { text-align: center; cursor: pointer; padding: 5px; border-radius: 10px; transition: all 0.2s; }
+        .nav-item.active { background: #f0f0ff; color: #667eea; }
+        .nav-icon { font-size: 20px; margin-bottom: 3px; }
+        .nav-label { font-size: 10px; font-weight: 600; }
+        .placeholder-text { text-align: center; margin-top: 50px; color: #888; font-size: 14px; padding: 0 20px; }
+    </style>
 </head>
 <body>
     <div class="phone-container">
@@ -24,29 +59,27 @@
                     </div>
                     <div class="content">
                         <div class="filter-tabs">
-                            <div class="tab active" data-category="Todos">Todos</div>
-                            <div class="tab" data-category="Festas">Festas</div>
-                            <div class="tab" data-category="Shows">Shows</div>
-                            <div class="tab" data-category="Rodeios">Rodeios</div>
+                            <div class="tab active">Todos</div>
+                            <div class="tab">Festas</div>
+                            <div class="tab">Shows</div>
+                            <div class="tab">Rodeios</div>
                         </div>
-                        <div id="event-list"></div>
+                        <div id="event-list"><p class="placeholder-text">Carregando eventos...</p></div>
                     </div>
                 </div>
                 <div id="page-meus-eventos" class="page">
                     <div class="header"><div class="logo">Meus Eventos</div></div>
-                    <div class="content"><p class="placeholder-text">Você ainda não confirmou presença em nenhum evento.</p></div>
+                    <div class="content"><p class="placeholder-text">Você ainda não confirmou presença.</p></div>
                 </div>
                 <div id="page-proximos" class="page">
                     <div class="header"><div class="logo">Eventos Próximos</div></div>
-                    <div class="content"><p class="placeholder-text">Funcionalidade de mapa e eventos próximos em breve!</p></div>
+                    <div class="content"><p class="placeholder-text">Mapa em breve!</p></div>
                 </div>
                 <div id="page-perfil" class="page">
                     <div class="header"><div class="logo">Meu Perfil</div></div>
-                    <div class="content"><p class="placeholder-text">Área de login e configurações do perfil em breve!</p></div>
+                    <div class="content"><p class="placeholder-text">Login e perfil em breve!</p></div>
                 </div>
             </div>
-            
-            <div class="floating-button" onclick="openModal()">➕</div>
             
             <div class="bottom-nav">
                 <div class="nav-item active" onclick="showPage('inicio')">
@@ -64,36 +97,96 @@
             </div>
         </div>
     </div>
-    
-    <div class="modal" id="eventModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close-btn" onclick="closeModal()">&times;</span>
-                <h2>Criar Evento</h2>
-                <p>Divulgue seu evento em Piracicaba</p>
-            </div>
-            <div class="modal-body">
-                <div class="form-group"><label class="form-label">Nome do Evento</label><input type="text" class="form-input" placeholder="Ex: Festa da Faculdade"></div>
-                <div class="form-group"><label class="form-label">Data e Hora</label><input type="datetime-local" class="form-input"></div>
-                <div class="form-group"><label class="form-label">Local</label><input type="text" class="form-input" placeholder="Endereço do evento"></div>
-                <div class="form-group">
-                    <label class="form-label">Escolha seu plano:</label>
-                    <div class="pricing-options">
-                        <div class="pricing-option" onclick="selectPlan(this)"><div class="price">GRÁTIS</div><div class="features">Evento básico  
-Alcance limitado</div></div>
-                        <div class="pricing-option selected" onclick="selectPlan(this)"><div class="price">R$ 25</div><div class="features">Destaque  
-+ Alcance  
-Analytics</div></div>
-                        <div class="pricing-option" onclick="selectPlan(this)"><div class="price">R$ 50</div><div class="features">Topo do feed  
-Push notification  
-Analytics completos</div></div>
+
+    <!-- O JAVASCRIPT ESTÁ TODO AQUI DENTRO -->
+    <script type="module">
+        // 1. Importa as funções necessárias do Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+        // 2. Suas chaves de configuração
+        const firebaseConfig = {
+            apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
+            authDomain: "bora-app-piracicaba.firebaseapp.com",
+            projectId: "bora-app-piracicaba",
+            storageBucket: "bora-app-piracicaba.firebasestorage.app",
+            messagingSenderId: "193650879035",
+            appId: "1:193650879035:web:fc51106b02ac4cb0eb8a1e"
+        };
+
+        // 3. Inicializa o Firebase e o Firestore
+        try {
+            const app = initializeApp(firebaseConfig );
+            const db = getFirestore(app);
+
+            // 4. Função para buscar os eventos
+            function fetchEvents() {
+                const eventsCollection = collection(db, "events");
+                onSnapshot(eventsCollection, (querySnapshot) => {
+                    const events = [];
+                    querySnapshot.forEach((doc) => {
+                        events.push({ id: doc.id, ...doc.data() });
+                    });
+                    renderEvents(events);
+                }, (error) => {
+                    console.error("Erro ao buscar eventos no Firestore: ", error);
+                    document.getElementById('event-list').innerHTML = '<p class="placeholder-text" style="color: red;">Erro ao carregar eventos.</p>';
+                });
+            }
+
+            // 5. Chama a função para buscar os eventos
+            fetchEvents();
+
+        } catch (error) {
+            console.error("Erro ao inicializar o Firebase: ", error);
+            document.getElementById('event-list').innerHTML = '<p class="placeholder-text" style="color: red;">Falha na configuração do Firebase.</p>';
+        }
+
+        // 6. Função para renderizar os eventos
+        function renderEvents(eventsToRender) {
+            const eventList = document.getElementById('event-list');
+            if (!eventList) return;
+            
+            eventList.innerHTML = ''; 
+            if (!eventsToRender || eventsToRender.length === 0) {
+                eventList.innerHTML = '<p class="placeholder-text">Nenhum evento cadastrado.</p>';
+                return;
+            }
+
+            eventsToRender.forEach(event => {
+                const card = document.createElement('div');
+                const isPremium = event.isPremium || false;
+                const imageGradient = event.imageGradient || 'linear-gradient(45deg, #ccc, #aaa)';
+                const imageType = event.imageType || 'EVENTO';
+                const goingCount = event.going || 0;
+
+                card.className = 'event-card';
+                if (isPremium) card.classList.add('premium');
+
+                card.innerHTML = `
+                    ${isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
+                    <div class="event-image" style="background: ${imageGradient};">${imageType}</div>
+                    <div class="event-info">
+                        <div class="event-title">${event.title}</div>
+                        <div class="event-date">${event.date}</div>
+                        <div class="event-location">${event.location}</div>
+                        <div class="event-stats">
+                            <div class="going-count">+ ${goingCount} pessoas vão</div>
+                            <div class="event-price">${event.price}</div>
+                        </div>
                     </div>
-                </div>
-                <button class="submit-btn">Publicar Evento - R$ 25</button>
-            </div>
-        </div>
-    </div>
-    
-    <script type="module" src="script.js"></script>
+                `;
+                eventList.appendChild(card);
+            });
+        }
+
+        // 7. Funções de navegação
+        window.showPage = function(pageId) {
+            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
+        }
+    </script>
 </body>
 </html>
