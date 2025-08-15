@@ -6,50 +6,17 @@
     <title>Bora - Eventos em Piracicaba</title>
     <link rel="manifest" href="manifest.json">
     
-    <!-- O CSS ESTÁ TODO AQUI DENTRO -->
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Arial', sans-serif; background: #f0f2f5; min-height: 100vh; display: flex; justify-content: center; align-items: center; padding: 20px; }
-        .phone-container { width: 375px; height: 667px; background: #000; border-radius: 30px; padding: 10px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); position: relative; overflow: hidden; }
-        .screen { width: 100%; height: 100%; background: #ffffff; border-radius: 25px; overflow: hidden; display: flex; flex-direction: column; }
-        .status-bar { background: #000; color: white; padding: 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; flex-shrink: 0; }
-        .main-content { flex: 1; position: relative; }
-        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; background-color: #fff; }
-        .page.active { display: flex; }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px; text-align: center; flex-shrink: 0; }
-        .logo { font-size: 32px; font-weight: bold; }
-        .subtitle { font-size: 14px; opacity: 0.9; }
-        .location { display: flex; align-items: center; justify-content: center; gap: 5px; margin-top: 10px; font-size: 12px; }
-        .content { flex: 1; overflow-y: auto; padding: 15px; }
-        .filter-tabs { display: flex; gap: 10px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px; }
-        .tab { background: #f0f0f0; padding: 8px 16px; border-radius: 20px; font-size: 12px; white-space: nowrap; cursor: pointer; transition: all 0.3s; }
-        .tab.active { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
-        .event-card { background: white; border-radius: 15px; margin-bottom: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; }
-        .premium-badge { position: absolute; top: 10px; right: 10px; background: #FFD700; color: #000; padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; z-index: 2; }
-        .event-image { width: 100%; height: 120px; display: flex; align-items: center; justify-content: center; color: white; font-size: 18px; font-weight: bold; position: relative; }
-        .event-info { padding: 15px; }
-        .event-title { font-size: 16px; font-weight: bold; margin-bottom: 5px; color: #333; }
-        .event-date { color: #667eea; font-size: 12px; font-weight: 600; margin-bottom: 5px; }
-        .event-location { color: #666; font-size: 12px; margin-bottom: 10px; }
-        .event-stats { display: flex; justify-content: space-between; align-items: center; }
-        .going-count { font-size: 12px; color: #28a745; font-weight: 600; }
-        .event-price { background: #667eea; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-        .bottom-nav { background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 12px 0; flex-shrink: 0; }
-        .nav-item { text-align: center; cursor: pointer; padding: 5px; border-radius: 10px; transition: all 0.2s; }
-        .nav-item.active { background: #f0f0ff; color: #667eea; }
-        .nav-icon { font-size: 20px; margin-bottom: 3px; }
-        .nav-label { font-size: 10px; font-weight: 600; }
-        .placeholder-text { text-align: center; margin-top: 50px; color: #888; font-size: 14px; padding: 0 20px; }
-    </style>
+    <!-- 1. Link para o seu arquivo de estilos -->
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <!-- Todo o seu HTML do .phone-container até o .modal continua aqui, sem alterações -->
     <div class="phone-container">
         <div class="screen">
             <div class="status-bar">
                 <span>9:41</span>
                 <span>📶 📶 📶 🔋</span>
             </div>
-            
             <div class="main-content">
                 <div id="page-inicio" class="page active">
                     <div class="header">
@@ -80,7 +47,6 @@
                     <div class="content"><p class="placeholder-text">Login e perfil em breve!</p></div>
                 </div>
             </div>
-            
             <div class="bottom-nav">
                 <div class="nav-item active" onclick="showPage('inicio')">
                     <div class="nav-icon">🏠</div><div class="nav-label">Início</div>
@@ -97,96 +63,8 @@
             </div>
         </div>
     </div>
-
-    <!-- O JAVASCRIPT ESTÁ TODO AQUI DENTRO -->
-    <script type="module">
-        // 1. Importa as funções necessárias do Firebase
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-        import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-        // 2. Suas chaves de configuração
-        const firebaseConfig = {
-            apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
-            authDomain: "bora-app-piracicaba.firebaseapp.com",
-            projectId: "bora-app-piracicaba",
-            storageBucket: "bora-app-piracicaba.firebasestorage.app",
-            messagingSenderId: "193650879035",
-            appId: "1:193650879035:web:fc51106b02ac4cb0eb8a1e"
-        };
-
-        // 3. Inicializa o Firebase e o Firestore
-        try {
-            const app = initializeApp(firebaseConfig );
-            const db = getFirestore(app);
-
-            // 4. Função para buscar os eventos
-            function fetchEvents() {
-                const eventsCollection = collection(db, "events");
-                onSnapshot(eventsCollection, (querySnapshot) => {
-                    const events = [];
-                    querySnapshot.forEach((doc) => {
-                        events.push({ id: doc.id, ...doc.data() });
-                    });
-                    renderEvents(events);
-                }, (error) => {
-                    console.error("Erro ao buscar eventos no Firestore: ", error);
-                    document.getElementById('event-list').innerHTML = '<p class="placeholder-text" style="color: red;">Erro ao carregar eventos.</p>';
-                });
-            }
-
-            // 5. Chama a função para buscar os eventos
-            fetchEvents();
-
-        } catch (error) {
-            console.error("Erro ao inicializar o Firebase: ", error);
-            document.getElementById('event-list').innerHTML = '<p class="placeholder-text" style="color: red;">Falha na configuração do Firebase.</p>';
-        }
-
-        // 6. Função para renderizar os eventos
-        function renderEvents(eventsToRender) {
-            const eventList = document.getElementById('event-list');
-            if (!eventList) return;
-            
-            eventList.innerHTML = ''; 
-            if (!eventsToRender || eventsToRender.length === 0) {
-                eventList.innerHTML = '<p class="placeholder-text">Nenhum evento cadastrado.</p>';
-                return;
-            }
-
-            eventsToRender.forEach(event => {
-                const card = document.createElement('div');
-                const isPremium = event.isPremium || false;
-                const imageGradient = event.imageGradient || 'linear-gradient(45deg, #ccc, #aaa)';
-                const imageType = event.imageType || 'EVENTO';
-                const goingCount = event.going || 0;
-
-                card.className = 'event-card';
-                if (isPremium) card.classList.add('premium');
-
-                card.innerHTML = `
-                    ${isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
-                    <div class="event-image" style="background: ${imageGradient};">${imageType}</div>
-                    <div class="event-info">
-                        <div class="event-title">${event.title}</div>
-                        <div class="event-date">${event.date}</div>
-                        <div class="event-location">${event.location}</div>
-                        <div class="event-stats">
-                            <div class="going-count">+ ${goingCount} pessoas vão</div>
-                            <div class="event-price">${event.price}</div>
-                        </div>
-                    </div>
-                `;
-                eventList.appendChild(card);
-            });
-        }
-
-        // 7. Funções de navegação
-        window.showPage = function(pageId) {
-            document.querySelectorAll('.page').forEach(page => page.classList.remove('active'));
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-            document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
-        }
-    </script>
+    
+    <!-- 2. Link para o seu script, como um módulo -->
+    <script type="module" src="script.js"></script>
 </body>
 </html>
