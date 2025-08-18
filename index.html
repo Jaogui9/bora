@@ -1,15 +1,25 @@
+# Bora - Eventos em Piracicaba
+
+Aqui está o HTML limpo e organizado para o aplicativo "Bora" de eventos em Piracicaba:
+
+```html
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Bora - Eventos em Piracicaba</title>
+    <link rel="manifest" href="manifest.json">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Bora">
+    
+    <!-- Preload Critical Resources -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
     
     <style>
         :root {
@@ -488,7 +498,7 @@
             line-height: 1.6;
         }
         
-        /* FAB Button Enhanced */
+        /* FAB Button */
         .fab {
             position: fixed;
             bottom: calc(80px + env(safe-area-inset-bottom));
@@ -877,11 +887,7 @@
             border: 3px solid rgba(102, 126, 234, 0.3);
             border-radius: 50%;
             border-top-color: #667eea;
-            animation: loading-spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes loading-spin {
-            to { transform: rotate(360deg); }
+            animation: spin 1s ease-in-out infinite;
         }
         
         /* Responsive Improvements */
@@ -903,25 +909,163 @@
             }
         }
         
-        /* Form Error Styles */
-        .form-error {
-            color: var(--danger-color);
-            font-size: 12px;
-            margin-top: 5px;
-            display: block;
-            min-height: 18px;
+        /* Dark Mode Support */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #121212;
+            }
+            
+            .screen {
+                background: #1e1e1e;
+            }
+            
+            .event-card {
+                background: #2d2d2d;
+                border-color: rgba(255,255,255,0.1);
+            }
+            
+            .event-title {
+                color: #ffffff;
+            }
+            
+            .modal {
+                background: #2d2d2d;
+            }
+            
+            .form-input {
+                background: #3d3d3d;
+                border-color: rgba(255,255,255,0.2);
+                color: white;
+            }
+            
+            .pricing-option {
+                background: #3d3d3d;
+                border-color: rgba(255,255,255,0.2);
+            }
+            
+            .modal-title, .easter-egg-text {
+                color: #ffffff;
+            }
         }
         
-        .form-input.error {
-            border-color: var(--danger-color);
+        /* Performance Optimizations */
+        .event-card, .tab, .nav-item, .fab, .modal {
+            will-change: transform;
         }
         
-        /* Submit button disabled state */
-        .submit-btn:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-            transform: none !important;
+        /* Accessibility Improvements */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
         }
         
-        /* Toast notification styles */
-        #
+        /* High contrast mode */
+        @media (prefers-contrast: high) {
+            .tab, .event-card, .pricing-option {
+                border-width: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <div class="screen">
+            <div class="status-bar">
+                <span>9:41</span>
+                <span>📶 📶 📶 🔋</span>
+            </div>
+            <div class="main-content">
+                <div id="page-inicio" class="page active">
+                    <div class="header">
+                        <div class="logo" id="logoClick">Bora</div>
+                        <div class="subtitle">Encontre os melhores eventos</div>
+                        <div class="location">📍 Piracicaba, SP</div>
+                    </div>
+                    <div class="content">
+                        <div class="filter-tabs">
+                            <div class="tab active" onclick="filterEvents('todos')"><span>Todos</span></div>
+                            <div class="tab" onclick="filterEvents('festas')"><span>Festas</span></div>
+                            <div class="tab" onclick="filterEvents('shows')"><span>Shows</span></div>
+                            <div class="tab" onclick="filterEvents('rodeios')"><span>Rodeios</span></div>
+                            <div class="tab" onclick="filterEvents('cultura')"><span>Cultura</span></div>
+                        </div>
+                        <div id="event-list">
+                            <!-- Eventos -->
+                            <div class="event-card rodeio-special" data-category="rodeios">
+                                <div class="premium-badge">PREMIUM</div>
+                                <div class="event-image">RODEIO</div>
+                                <div class="event-info">
+                                    <div class="event-title">Rodeio de Piracicaba 2025</div>
+                                    <div class="event-date">hoje 21:00</div>
+                                    <div class="event-location">Parque do Engenho Central</div>
+                                    <div class="event-stats">
+                                        <div class="going-count">1.2k pessoas vão</div>
+                                        <div class="event-price">R$ 45</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="event-card show-special" data-category="shows">
+                                <div class="event-image">SHOW</div>
+                                <div class="event-info">
+                                    <div class="event-title">Festival de Inverno Piracicaba</div>
+                                    <div class="event-date">amanhã 19:00</div>
+                                    <div class="event-location">Arena Piracicaba</div>
+                                    <div class="event-stats">
+                                        <div class="going-count">456 pessoas vão</div>
+                                        <div class="event-price">R$ 30</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="event-card" data-category="festas">
+                                <div class="event-image" style="background: linear-gradient(45deg, #e91e63, #9c27b0);">FESTA</div>
+                                <div class="event-info">
+                                    <div class="event-title">Festa Universitária ESALQ</div>
+                                    <div class="event-date">sábado 22:00</div>
+                                    <div class="event-location">Campus ESALQ</div>
+                                    <div class="event-stats">
+                                        <div class="going-count">789 pessoas vão</div>
+                                        <div class="event-price">R$ 20</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="event-card" data-category="cultura">
+                                <div class="event-image" style="background: linear-gradient(45deg, #00bcd4, #4caf50);">CULTURA</div>
+                                <div class="event-info">
+                                    <div class="event-title">Exposição Arte Local</div>
+                                    <div class="event-date">domingo 14:00</div>
+                                    <div class="event-location">Centro Cultural</div>
+                                    <div class="event-stats">
+                                        <div class="going-count">123 pessoas vão</div>
+                                        <div class="event-price">Grátis</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="page-meus-eventos" class="page">
+                    <div class="header">
+                        <div class="logo">Meus Eventos</div>
+                        <div class="subtitle">Eventos confirmados</div>
+                    </div>
+                    <div class="content">
+                        <div id="my-events-list">
+                            <p class="placeholder-text">Você ainda não confirmou presença em nenhum evento.<br><br>Que tal conferir alguns eventos bacanas? 🎉</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div id="page-proximos" class="page">
+                    <div class="header">
+                        <div class="logo">Eventos Próximos</div>
+                        <div class="subtitle">Baseado na sua localização</div>
+                    </div>
+                    <div class="content">
+                        <div class="location-info" style="text-align: center
