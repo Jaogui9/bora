@@ -1,21 +1,45 @@
 {
   "name": "Bora Lá",
   "short_name": "Bora Lá",
-  "description": "Seu aplicativo para festas e rolês.",
-  "start_url": ".",
+  "description": "Seu aplicativo para festas e rolês em Piracicaba",
+  "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#1a1a1a",
   "theme_color": "#9f00ff",
+  "lang": "pt-BR",
+  "categories": ["entertainment", "social", "events"],
   "icons": [
     {
       "src": "logo_bora_la_pwa_192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     },
     {
       "src": "logo_bora_la_pwa_512.png",
       "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo_bora_la_pwa_144.png",
+      "sizes": "144x144",
       "type": "image/png"
+    },
+    {
+      "src": "logo_bora_la_pwa_96.png",
+      "sizes": "96x96",
+      "type": "image/png"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "form_factor": "narrow"
     }
   ]
 }
