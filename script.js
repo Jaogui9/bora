@@ -1,227 +1,115 @@
-// =================================================================
-// INICIALIZAÇÃO DO FIREBASE (Versão Atualizada)
-// =================================================================
+// Importa as funções necessárias do Firebase
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { 
-  getFirestore, 
-  collection, 
-  onSnapshot,
-  query,
-  orderBy,
-  where,
-  limit
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// Configuração do Firebase (recomendo usar variáveis de ambiente em produção)
+// =================================================================
+// 1. CONFIGURAÇÃO DO FIREBASE
+// COLOQUE SUAS CHAVES AQUI DENTRO!
+// =================================================================
 const firebaseConfig = {
-  apiKey: "AIzaSyDIjEdtxSyamlwkJolyLDTbvJXt33UwCL0",
-  authDomain: "bora-app-piracicaba.firebaseapp.com",
-  projectId: "bora-app-piracicaba",
-  storageBucket: "bora-app-piracicaba.appspot.com",
-  messagingSenderId: "193650879035",
-  appId: "1:193650879035:web:fc51106b02ac4cb0eb8a1e",
-  measurementId: "G-XXXXXXXXXX" // Adicione se tiver o Firebase Analytics
+    apiKey: "SUA_API_KEY",
+    authDomain: "SEU_AUTH_DOMAIN",
+    projectId: "SEU_PROJECT_ID",
+    storageBucket: "SEU_STORAGE_BUCKET",
+    messagingSenderId: "SEU_SENDER_ID",
+    appId: "SEU_APP_ID"
 };
 
-// Inicialização segura
-let app, db, auth;
-
-try {
-  app = initializeApp(firebaseConfig);
-  db = getFirestore(app);
-  auth = getAuth(app);
-  console.log("Firebase inicializado com sucesso");
-} catch (error) {
-  console.error("Erro na inicialização do Firebase:", error);
-  // Fallback para dados locais ou tratamento de erro
-}
+// Inicializa o Firebase e o Firestore
+const app = initializeApp(firebaseConfig );
+const db = getFirestore(app);
 
 // =================================================================
-// GERENCIAMENTO DE ESTADO
+// 2. SELETORES DE ELEMENTOS DA UI (DOM)
 // =================================================================
-const state = {
-  currentUser: null,
-  events: [],
-  currentFilter: 'todos'
-};
+const eventListContainer = document.getElementById('event-list');
+const navItems = document.querySelectorAll('.nav-item');
+const fab = document.querySelector('.fab');
+const modalOverlay = document.getElementById('modalOverlay');
+const modalCloseButton = document.querySelector('.modal-close');
 
 // =================================================================
-// FUNÇÕES DE DADOS MELHORADAS
+// 3. FUNÇÕES PRINCIPAIS
 // =================================================================
 
 /**
- * Busca eventos com filtros e ordenação
- * @param {string} category - Categoria para filtrar
- * @param {number} maxResults - Número máximo de resultados
+ * Busca os eventos do Firestore em tempo real e os renderiza na tela.
  */
-async function fetchEvents(category = 'todos', maxResults = 20) {
-  if (!db) {
-    console.error("Firestore não inicializado");
-    renderErrorState();
-    return;
-  }
+function fetchAndRenderEvents() {
+    const eventsCollection = collection(db, "events");
+    onSnapshot(eventsCollection, (snapshot) => {
+        const events = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        
+        if (!eventListContainer) return;
+        eventListContainer.innerHTML = ''; // Limpa a lista
 
-  try {
-    let eventsQuery = query(
-      collection(db, "events"),
-      orderBy("date", "asc"),
-      limit(maxResults)
-    );
+        if (events.length === 0) {
+            eventListContainer.innerHTML = '<p class="placeholder-text">Nenhum evento encontrado.</p>';
+            return;
+        }
 
-    if (category !== 'todos') {
-      eventsQuery = query(
-        eventsQuery,
-        where("category", "==", category)
+        events.forEach(event => {
+            const card = document.createElement('div');
+            card.className = 'event-card';
+            card.innerHTML = `
+                ${event.isPremium ? '<div class="premium-badge">PREMIUM</div>' : ''}
+                <div class="event-image" style="background: ${event.imageGradient || 'linear-gradient(45deg, #888, #555)'};">
+                    ${event.imageType || 'EVENTO'}
+                </div>
+                <div class="event-info">
+                    <div class="event-title">${event.title}</div>
+                    <div class="event-date">${event.date}</div>
+                    <div class="event-location">${event.location}</div>
+                    <div class="event-stats">
+                        <div class="going-count">+ ${event.going || 0} pessoas vão</div>
+                        <div class="event-price">${event.price}</div>
+                    </div>
+                </div>
+            `;
+            eventListContainer.appendChild(card);
+        });
+    }, (error) => {
+        console.error("Erro ao buscar eventos: ", error);
+        eventListContainer.innerHTML = '<p class="placeholder-text" style="color: red;">Erro ao carregar eventos. Verifique o console.</p>';
+    });
+}
+
+/**
+ * Mostra a página correta com base no clique da navegação.
+ * @param {string} pageId - O ID da página a ser exibida.
+ */
+function showPage(pageId) {
+    document.querySelectorAll('.page').forEach(page => {
+        page.classList.toggle('active', page.id === `page-${pageId}`);
+    });
+    navItems.forEach(item => {
+        item.classList.toggle('active', item.dataset.page === pageId);
+    });
+}
+
+// =================================================================
+// 4. EVENT LISTENERS (AÇÕES DO USUÁRIO)
+// =================================================================
+
+// Adiciona ouvintes de clique para a barra de navegação
+navItems.forEach(item => {
+    item.addEventListener('click', () => showPage(item.dataset.page));
+});
+
+// Adiciona ouvintes de clique para abrir e fechar o modal
+fab.addEventListener('click', () => modalOverlay.hidden = false);
+modalCloseButton.addEventListener('click', () => modalOverlay.hidden = true);
+modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) {
+        modalOverlay.hidden = true;
     }
-
-    const unsubscribe = onSnapshot(eventsQuery, 
-      (snapshot) => {
-        state.events = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        renderEvents(state.events);
-      },
-      (error) => {
-        console.error("Erro na consulta:", error);
-        renderErrorState();
-      }
-    );
-
-    return unsubscribe; // Retorna a função para cancelar a inscrição
-
-  } catch (error) {
-    console.error("Erro ao buscar eventos:", error);
-    renderErrorState();
-  }
-}
-
-function renderErrorState() {
-  if (eventListContainer) {
-    eventListContainer.innerHTML = `
-      <div class="error-state">
-        <p>😕 Ops, não conseguimos carregar os eventos</p>
-        <button id="retry-button">Tentar novamente</button>
-      </div>
-    `;
-    document.getElementById('retry-button').addEventListener('click', () => fetchEvents(state.currentFilter));
-  }
-}
-
-// =================================================================
-// AUTENTICAÇÃO E SEGURANÇA
-// =================================================================
-function initAuth() {
-  if (!auth) return;
-
-  onAuthStateChanged(auth, (user) => {
-    state.currentUser = user;
-    updateUIForAuthState();
-    
-    // Atualiza eventos após autenticação
-    fetchEvents(state.currentFilter);
-  });
-}
-
-function updateUIForAuthState() {
-  const createEventBtn = document.getElementById('create-event-btn');
-  if (createEventBtn) {
-    createEventBtn.style.display = state.currentUser ? 'block' : 'none';
-  }
-}
-
-// =================================================================
-// OTIMIZAÇÕES DE PERFORMANCE
-// =================================================================
-
-// Debounce para funções que lidam com scroll/resize
-function debounce(func, timeout = 300) {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => { func.apply(this, args); }, timeout);
-  };
-}
-
-// Cache simples para evitar re-renderizações desnecessárias
-const eventCache = new Map();
-
-function renderEvents(events) {
-  if (!eventListContainer) return;
-
-  // Verifica se os eventos são iguais aos anteriores
-  const cacheKey = JSON.stringify(events);
-  if (eventCache.get(cacheKey)) return;
-  
-  eventCache.set(cacheKey, true);
-  
-  // Restante da sua função renderEvents...
-  // (mantenha sua implementação atual, mas adicione):
-  if (events.length === 0) {
-    eventListContainer.innerHTML = `
-      <div class="empty-state">
-        <p>🎉 Nenhum evento encontrado. Que tal criar o primeiro?</p>
-      </div>
-    `;
-    return;
-  }
-
-  // ... sua implementação atual de renderização
-}
-
-// =================================================================
-// INICIALIZAÇÃO DO APP
-// =================================================================
-document.addEventListener('DOMContentLoaded', () => {
-  // Verifica se o Firebase foi inicializado
-  if (!db) {
-    renderErrorState();
-    return;
-  }
-
-  // Inicia autenticação
-  initAuth();
-
-  // Carrega eventos iniciais
-  const unsubscribe = fetchEvents(state.currentFilter);
-
-  // Limpeza ao sair da página
-  window.addEventListener('beforeunload', () => {
-    if (unsubscribe) unsubscribe();
-  });
-
-  // Registro do Service Worker
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/sw.js')
-      .then(registration => {
-        console.log('SW registrado:', registration);
-        registration.update(); // Força atualização do SW
-      })
-      .catch(error => {
-        console.error('Falha no registro do SW:', error);
-      });
-  }
 });
 
 // =================================================================
-// ATUALIZAÇÕES PARA O SEU CÓDIGO EXISTENTE
+// 5. INICIALIZAÇÃO DO APP
 // =================================================================
 
-// 1. Adicione data-page aos seus navItems no HTML:
-// <div class="nav-item" data-page="inicio" ...>
-
-// 2. Atualize sua função showPage para usar o estado:
-function showPage(pageId) {
-  state.currentPage = pageId;
-  // ... sua implementação atual
-  if (pageId === 'inicio') {
-    fetchEvents(state.currentFilter);
-  }
-}
-
-// 3. Atualize o filterEvents para usar o estado:
-function filterEvents(category) {
-  state.currentFilter = category;
-  fetchEvents(category);
-}
+// Garante que o DOM está pronto antes de executar o código
+document.addEventListener('DOMContentLoaded', () => {
+    fetchAndRenderEvents();
+});
