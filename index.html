@@ -60,7 +60,7 @@
         .filter-tabs::-webkit-scrollbar { display: none; }
         .tab { background: #f8f9fa; border: 2px solid transparent; padding: 12px 20px; border-radius: 25px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all var(--transition-smooth); position: relative; overflow: hidden; }
         .tab.active { background: var(--primary-gradient); color: white; border-color: rgba(255,255,255,0.3); transform: translateY(-2px); box-shadow: var(--shadow-light); }
-        .event-card { background: white; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: var(--shadow-light); overflow: hidden; position: relative; transition: all var(--transition-smooth); border: 1px solid rgba(0,0,0,0.05); }
+        .event-card { background: white; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: var(--shadow-light); overflow: hidden; position: relative; transition: all var(--transition-smooth); border: 1px solid rgba(0,0,0,0.05); cursor: pointer; }
         .event-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
         .event-image { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800; position: relative; background: var(--secondary-gradient); overflow: hidden; background-size: cover; background-position: center; }
         .event-info { padding: 20px; }
@@ -123,6 +123,11 @@
         .pricing-title { font-weight: 700; font-size: 16px; color: #1a1a1a; }
         .pricing-description { font-size: 13px; color: #666; }
         .pricing-price { font-size: 18px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 5px; }
+        .detail-map-placeholder { width: 100%; height: 150px; background-color: #e9ecef; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: #6c757d; font-weight: 600; margin: 15px 0; }
+        .attendee-list { list-style: none; padding: 0; }
+        .attendee-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
+        .attendee-pic { width: 32px; height: 32px; border-radius: 50%; }
+        .attendee-name { font-weight: 500; }
     </style>
 </head>
 <body>
@@ -261,7 +266,7 @@
                                 <div class="pricing-price">R$ 100</div>
                             </div>
                             <div class="pricing-option" onclick="selectPlan('ilimitado', 200, this)">
-                                <div class="pricing-title">� Ilimitado</div>
+                                <div class="pricing-title">💎 Ilimitado</div>
                                 <div class="pricing-description">Alcance ilimitado</div>
                                 <div class="pricing-price">R$ 200</div>
                             </div>
@@ -273,6 +278,19 @@
                         <span id="btn-loading" class="loading" style="display: none;"></span>
                     </button>
                 </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de Detalhes do Evento -->
+    <div class="modal-overlay" id="eventDetailModal">
+        <div class="modal">
+            <div class="modal-header" id="eventDetailHeader">
+                <button class="modal-close" onclick="closeEventDetails()">&times;</button>
+                <div class="modal-title" id="eventDetailTitle">Nome do Evento</div>
+            </div>
+            <div class="modal-content" id="eventDetailContent">
+                <!-- Conteúdo preenchido dinamicamente -->
             </div>
         </div>
     </div>
@@ -510,9 +528,12 @@
             const isOwner = currentUser ? data.creatorId === currentUser.uid : false;
             const plan = data.plan || { name: 'gratuito', price: 0 };
 
+            // Ação de clique no card principal
+            const cardClickAction = isSuggestion ? '' : `onclick="showEventDetails('${id}')"`;
+
             const cardHTML = `
-                <div class="event-card" data-category="${data.category}" data-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}">
-                    ${isOwner && context === 'my-created' ? `<button class="delete-btn" onclick="showDeleteConfirmation('${id}')">🗑️</button>` : ''}
+                <div class="event-card" data-category="${data.category}" data-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}" ${cardClickAction}>
+                    ${isOwner && context === 'my-created' ? `<button class="delete-btn" onclick="event.stopPropagation(); showDeleteConfirmation('${id}')">🗑️</button>` : ''}
                     ${plan.price > 0 ? `<div class="premium-badge">DESTAQUE</div>` : ''}
                     <div class="event-image" style="${imageStyle}">
                         ${data.category.toUpperCase()}
@@ -521,10 +542,10 @@
                         <div class="event-title">${data.name}</div>
                         <div class="event-date">📅 ${eventDate}</div>
                         <div class="event-location">📍 ${data.location}</div>
-                        ${data.description ? `<p class="event-description">${data.description}</p>` : ''}
+                        ${data.description ? `<p class="event-description">${data.description.substring(0, 100)}...</p>` : ''}
                         <div class="event-actions">
                             <div class="attendee-count">👥 ${attendees.length} vão</div>
-                            <button class="confirm-btn ${isAttending ? 'attending' : ''}" onclick="toggleAttendance('${id}')">
+                            <button class="confirm-btn ${isAttending ? 'attending' : ''}" onclick="event.stopPropagation(); toggleAttendance('${id}')">
                                 ${isAttending ? '✔️ Confirmado' : 'Confirmar Presença'}
                             </button>
                         </div>
