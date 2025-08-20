@@ -68,6 +68,10 @@
         .event-date { color: #667eea; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
         .event-location { color: #666; font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
         .event-description { font-size: 14px; color: #555; line-height: 1.5; margin-top: 10px; border-left: 3px solid #667eea; padding-left: 10px; }
+        .event-actions { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid #f0f0f0; }
+        .attendee-count { font-size: 14px; font-weight: 600; color: #333; }
+        .confirm-btn { background: var(--primary-gradient); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
+        .confirm-btn.attending { background: var(--success-color); }
         .bottom-nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 12px 0 max(env(safe-area-inset-bottom), 12px) 0; flex-shrink: 0; }
         .nav-item { text-align: center; cursor: pointer; padding: 8px 12px; border-radius: 12px; transition: all var(--transition-smooth); position: relative; min-width: 60px; }
         .nav-item.active { background: rgba(102, 126, 234, 0.1); color: #667eea; transform: translateY(-2px); }
@@ -109,6 +113,7 @@
         .gemini-btn.loading { animation: spin 1s linear infinite; }
         .gemini-suggest-btn { background: var(--primary-gradient); color: white; border: none; padding: 14px 24px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); box-shadow: var(--shadow-light); display: block; margin: 20px auto 0 auto; }
         .gemini-suggest-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
+        .section-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
     </style>
 </head>
 <body>
@@ -140,10 +145,15 @@
                 <div id="page-meus-eventos" class="page">
                     <div class="header">
                         <div class="logo">Meus Eventos</div>
-                        <div class="subtitle">Eventos que você criou</div>
+                        <div class="subtitle">Sua atividade na plataforma</div>
                     </div>
                     <div class="content">
-                        <div id="my-events-list">
+                        <div class="section-title">🎉 Eventos que você confirmou</div>
+                        <div id="attending-events-list">
+                            <!-- Conteúdo dinâmico aqui -->
+                        </div>
+                        <div class="section-title" style="margin-top: 30px;">✍️ Eventos que você criou</div>
+                        <div id="my-created-events-list">
                             <!-- Conteúdo dinâmico aqui -->
                         </div>
                     </div>
@@ -283,9 +293,11 @@
             if (user) {
                 loadAllEvents();
                 loadMyEvents();
+                loadAttendingEvents();
             } else {
                 document.getElementById('event-list').innerHTML = '<p class="placeholder-text">Faça login para ver os eventos.</p>';
-                document.getElementById('my-events-list').innerHTML = '<p class="placeholder-text">Faça login para ver seus eventos.</p>';
+                document.getElementById('my-created-events-list').innerHTML = '<p class="placeholder-text">Faça login para ver seus eventos.</p>';
+                document.getElementById('attending-events-list').innerHTML = '<p class="placeholder-text">Faça login para ver seus eventos.</p>';
             }
         });
 
@@ -317,7 +329,6 @@
             }
         }
 
-        // MODIFICADO: Usa signInWithPopup que funciona melhor em ambientes de desenvolvimento.
         function signInWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider)
@@ -326,7 +337,6 @@
                 })
                 .catch(error => {
                     console.error("Erro no login com Google:", error);
-                    // Erros comuns que podem ser mostrados ao utilizador
                     if (error.code === 'auth/popup-closed-by-user') {
                         showToast('Login cancelado.', 'info');
                     } else if (error.code === 'auth/popup-blocked') {
@@ -394,7 +404,7 @@
                     return;
                 }
                 eventList.innerHTML = '';
-                snapshot.forEach(doc => renderEventCard(doc.data(), doc.id, eventList));
+                snapshot.forEach(doc => renderEventCard(doc, eventList));
             }, err => {
                 console.error("Erro ao carregar eventos:", err);
                 showToast('Erro ao carregar eventos.', 'error');
@@ -403,22 +413,43 @@
 
         function loadMyEvents() {
             if (!currentUser) return;
-            const myEventList = document.getElementById('my-events-list');
+            const myEventList = document.getElementById('my-created-events-list');
             eventsCollection.where('creatorId', '==', currentUser.uid).orderBy('date', 'asc').onSnapshot(snapshot => {
                 if (snapshot.empty) {
-                    myEventList.innerHTML = '<p class="placeholder-text">Você ainda não criou nenhum evento. Que tal começar?</p>';
+                    myEventList.innerHTML = '<p class="placeholder-text">Você ainda não criou nenhum evento.</p>';
                     return;
                 }
                 myEventList.innerHTML = '';
-                snapshot.forEach(doc => renderEventCard(doc.data(), doc.id, myEventList));
+                snapshot.forEach(doc => renderEventCard(doc, myEventList));
             }, err => {
-                console.error("Erro ao carregar os meus eventos:", err);
+                console.error("Erro ao carregar os meus eventos criados:", err);
             });
         }
 
-        function renderEventCard(data, id, container, isSuggestion = false) {
+        function loadAttendingEvents() {
+            if (!currentUser) return;
+            const attendingEventList = document.getElementById('attending-events-list');
+            eventsCollection.where('attendees', 'array-contains', currentUser.uid).orderBy('date', 'asc').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    attendingEventList.innerHTML = '<p class="placeholder-text">Você ainda não confirmou presença em nenhum evento.</p>';
+                    return;
+                }
+                attendingEventList.innerHTML = '';
+                snapshot.forEach(doc => renderEventCard(doc, attendingEventList));
+            }, err => {
+                console.error("Erro ao carregar eventos confirmados:", err);
+            });
+        }
+
+        function renderEventCard(doc, container, isSuggestion = false) {
+            const data = doc.data();
+            const id = doc.id;
             const eventDate = data.date ? new Date(data.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Data a definir';
             const imageStyle = `background: var(--secondary-gradient);`;
+
+            const attendees = data.attendees || [];
+            const isAttending = currentUser ? attendees.includes(currentUser.uid) : false;
+
             const cardHTML = `
                 <div class="event-card" data-category="${data.category}" data-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}">
                     ${isSuggestion ? '<div class="premium-badge" style="background: #764ba2; color: white;">SUGESTÃO</div>' : ''}
@@ -430,10 +461,50 @@
                         <div class="event-date">📅 ${eventDate}</div>
                         <div class="event-location">📍 ${data.location}</div>
                         ${data.description ? `<p class="event-description">${data.description}</p>` : ''}
+                        <div class="event-actions">
+                            <div class="attendee-count">👥 ${attendees.length} vão</div>
+                            <button class="confirm-btn ${isAttending ? 'attending' : ''}" onclick="toggleAttendance('${id}')">
+                                ${isAttending ? '✔️ Confirmado' : 'Confirmar Presença'}
+                            </button>
+                        </div>
                     </div>
                 </div>
             `;
             container.insertAdjacentHTML('beforeend', cardHTML);
+        }
+
+        async function toggleAttendance(eventId) {
+            if (!currentUser) {
+                showToast('Faça login para confirmar presença.', 'warning');
+                return;
+            }
+
+            const eventRef = eventsCollection.doc(eventId);
+            try {
+                const eventDoc = await eventRef.get();
+                if (!eventDoc.exists) {
+                    showToast('Evento não encontrado.', 'error');
+                    return;
+                }
+
+                const attendees = eventDoc.data().attendees || [];
+                const isAttending = attendees.includes(currentUser.uid);
+
+                if (isAttending) {
+                    await eventRef.update({
+                        attendees: firebase.firestore.FieldValue.arrayRemove(currentUser.uid)
+                    });
+                    showToast('Presença removida.', 'info');
+                } else {
+                    await eventRef.update({
+                        attendees: firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                    });
+                    showToast('Presença confirmada! 🎉', 'success');
+                }
+            } catch (error) {
+                console.error("Erro ao confirmar presença:", error);
+                showToast("Ocorreu um erro. Tente novamente.", "error");
+            }
         }
 
         // ===== FORMULÁRIO =====
@@ -460,7 +531,8 @@
                     category: document.getElementById('eventCategory').value,
                     creatorId: currentUser.uid,
                     creatorName: currentUser.displayName,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    attendees: [] // NOVO: Inicia a lista de presença
                 };
                 await eventsCollection.add(eventData);
                 
@@ -574,13 +646,16 @@
                     const suggestions = JSON.parse(result);
                     eventList.innerHTML = ''; // Limpa a mensagem de "pensando"
                     suggestions.forEach((event, index) => {
-                        const eventData = {
-                            name: event.eventName,
-                            category: event.category,
-                            location: event.location,
-                            description: "Esta é uma sugestão da IA. Que tal torná-la realidade?"
+                        const fakeDoc = {
+                            id: `suggestion-${index}`,
+                            data: () => ({
+                                name: event.eventName,
+                                category: event.category,
+                                location: event.location,
+                                description: "Esta é uma sugestão da IA. Que tal torná-la realidade?"
+                            })
                         };
-                        renderEventCard(eventData, `suggestion-${index}`, eventList, true);
+                        renderEventCard(fakeDoc, eventList, true);
                     });
                 } catch (e) {
                     console.error("Erro ao analisar JSON da IA:", e);
