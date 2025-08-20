@@ -73,6 +73,8 @@
         .confirm-btn { background: var(--primary-gradient); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
         .confirm-btn.attending { background: var(--success-color); }
         .premium-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; padding: 6px 12px; border-radius: 15px; font-size: 10px; font-weight: 800; z-index: 3; box-shadow: 0 4px 15px rgba(255,215,0,0.4); }
+        .delete-btn { position: absolute; top: 10px; left: 10px; z-index: 4; background: var(--danger-color); color: white; border: none; width: 36px; height: 36px; border-radius: 50%; font-size: 18px; cursor: pointer; transition: all var(--transition-fast); display: flex; align-items: center; justify-content: center; }
+        .delete-btn:hover { opacity: 0.8; transform: scale(1.1); }
         .bottom-nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 12px 0 max(env(safe-area-inset-bottom), 12px) 0; flex-shrink: 0; }
         .nav-item { text-align: center; cursor: pointer; padding: 8px 12px; border-radius: 12px; transition: all var(--transition-smooth); position: relative; min-width: 60px; }
         .nav-item.active { background: rgba(102, 126, 234, 0.1); color: #667eea; transform: translateY(-2px); }
@@ -140,7 +142,8 @@
                             <div class="tab active" onclick="filterEvents('todos', event)"><span>Todos</span></div>
                             <div class="tab" onclick="filterEvents('festas', event)"><span>Festas</span></div>
                             <div class="tab" onclick="filterEvents('shows', event)"><span>Shows</span></div>
-                            <div class="tab" onclick="filterEvents('rodeios', event)"><span>Rodeios</span></div>
+                            <div class="tab" onclick="filterEvents('esportes', event)"><span>Esportes</span></div>
+                            <div class="tab" onclick="filterEvents('cultura', event)"><span>Cultura</span></div>
                         </div>
                         <div id="event-list">
                             <p class="placeholder-text">Carregando eventos...</p>
@@ -233,7 +236,7 @@
                         <select class="form-input" id="eventCategory" required>
                             <option value="festas">🎉 Festas</option>
                             <option value="shows">🎵 Shows</option>
-                            <option value="rodeios">🤠 Rodeios</option>
+                            <option value="esportes">⚽ Esportes</option>
                             <option value="cultura">🎨 Cultura</option>
                         </select>
                     </div>
@@ -274,6 +277,22 @@
         </div>
     </div>
     
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal-overlay" id="deleteConfirmModal">
+        <div class="modal" style="max-height: 250px;">
+            <div class="modal-header" style="background: var(--danger-color);">
+                <div class="modal-title">Confirmar Exclusão</div>
+            </div>
+            <div class="modal-content" style="text-align: center;">
+                <p>Você tem certeza que deseja excluir este evento? Esta ação não pode ser desfeita.</p>
+                <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+                    <button class="submit-btn" style="background: #6c757d;" onclick="closeDeleteConfirmation()">Cancelar</button>
+                    <button class="submit-btn" style="background: var(--danger-color);" id="confirmDeleteBtn">Excluir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Notifications -->
     <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 4000; display: flex; flex-direction: column; gap: 10px;"></div>
 
@@ -302,6 +321,7 @@
         // ===== VARIÁVEIS GLOBAIS =====
         let currentUser = null;
         let selectedPlan = { name: 'gratuito', price: 0 };
+        let eventIdToDelete = null;
 
         // ===== INICIALIZAÇÃO DO APP =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -320,6 +340,8 @@
         function setupEventListeners() {
             document.getElementById('eventForm').addEventListener('submit', handleFormSubmit);
             document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+            document.getElementById('confirmDeleteBtn').addEventListener('click', deleteEvent);
+            document.getElementById('deleteConfirmModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDeleteConfirmation(); });
         }
 
         // ===== AUTENTICAÇÃO =====
@@ -440,7 +462,7 @@
                     return;
                 }
                 eventList.innerHTML = '';
-                snapshot.forEach(doc => renderEventCard(doc, eventList));
+                snapshot.forEach(doc => renderEventCard(doc, eventList, 'all'));
             }, err => {
                 console.error("Erro ao carregar eventos:", err);
                 showToast('Erro ao carregar eventos.', 'error');
@@ -456,7 +478,7 @@
                     return;
                 }
                 myEventList.innerHTML = '';
-                snapshot.forEach(doc => renderEventCard(doc, myEventList));
+                snapshot.forEach(doc => renderEventCard(doc, myEventList, 'my-created'));
             }, err => {
                 console.error("Erro ao carregar os meus eventos criados:", err);
             });
@@ -471,13 +493,13 @@
                     return;
                 }
                 attendingEventList.innerHTML = '';
-                snapshot.forEach(doc => renderEventCard(doc, attendingEventList));
+                snapshot.forEach(doc => renderEventCard(doc, attendingEventList, 'attending'));
             }, err => {
                 console.error("Erro ao carregar eventos confirmados:", err);
             });
         }
 
-        function renderEventCard(doc, container, isSuggestion = false) {
+        function renderEventCard(doc, container, context = 'all', isSuggestion = false) {
             const data = doc.data();
             const id = doc.id;
             const eventDate = data.date ? new Date(data.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'Data a definir';
@@ -485,10 +507,12 @@
 
             const attendees = data.attendees || [];
             const isAttending = currentUser ? attendees.includes(currentUser.uid) : false;
+            const isOwner = currentUser ? data.creatorId === currentUser.uid : false;
             const plan = data.plan || { name: 'gratuito', price: 0 };
 
             const cardHTML = `
                 <div class="event-card" data-category="${data.category}" data-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}">
+                    ${isOwner && context === 'my-created' ? `<button class="delete-btn" onclick="showDeleteConfirmation('${id}')">🗑️</button>` : ''}
                     ${plan.price > 0 ? `<div class="premium-badge">DESTAQUE</div>` : ''}
                     <div class="event-image" style="${imageStyle}">
                         ${data.category.toUpperCase()}
@@ -543,6 +567,33 @@
                 showToast("Ocorreu um erro. Tente novamente.", "error");
             }
         }
+        
+        // ===== LÓGICA DE EXCLUSÃO =====
+        function showDeleteConfirmation(eventId) {
+            eventIdToDelete = eventId;
+            document.getElementById('deleteConfirmModal').classList.add('show');
+        }
+
+        function closeDeleteConfirmation() {
+            eventIdToDelete = null;
+            document.getElementById('deleteConfirmModal').classList.remove('show');
+        }
+
+        async function deleteEvent() {
+            if (!eventIdToDelete || !currentUser) return;
+
+            const eventRef = eventsCollection.doc(eventIdToDelete);
+            try {
+                await eventRef.delete();
+                showToast('Evento excluído com sucesso!', 'success');
+            } catch (error) {
+                console.error("Erro ao excluir evento:", error);
+                showToast('Você não tem permissão para excluir este evento.', 'error');
+            } finally {
+                closeDeleteConfirmation();
+            }
+        }
+
 
         // ===== FORMULÁRIO =====
         function selectPlan(planName, price, element) {
@@ -619,7 +670,7 @@
                             type: "OBJECT",
                             properties: {
                                 "eventName": { "type": "STRING" },
-                                "category": { "type": "STRING", "enum": ["festas", "shows", "rodeios", "cultura"] },
+                                "category": { "type": "STRING", "enum": ["festas", "shows", "esportes", "cultura"] },
                                 "location": { "type": "STRING" }
                             },
                             required: ["eventName", "category", "location"]
@@ -689,7 +740,7 @@
             const eventList = document.getElementById('event-list');
             eventList.innerHTML = '<p class="placeholder-text">✨ A IA está a pensar nas melhores ideias para si...</p>';
 
-            const prompt = `Sugira 3 ideias criativas de eventos para a cidade de Piracicaba, SP, Brasil. Considere a cultura local. Retorne apenas um JSON válido, sem markdown, seguindo o schema. As categorias devem ser uma de: "festas", "shows", "rodeios", "cultura".`;
+            const prompt = `Sugira 3 ideias criativas de eventos para a cidade de Piracicaba, SP, Brasil. Considere a cultura local. Retorne apenas um JSON válido, sem markdown, seguindo o schema. As categorias devem ser uma de: "festas", "shows", "esportes", "cultura".`;
             
             const result = await callGeminiAPI(prompt, true);
 
@@ -708,7 +759,7 @@
                                 attendees: []
                             })
                         };
-                        renderEventCard(fakeDoc, eventList, true);
+                        renderEventCard(fakeDoc, eventList, 'all', true);
                     });
                 } catch (e) {
                     console.error("Erro ao analisar JSON da IA:", e);
