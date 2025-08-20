@@ -72,6 +72,7 @@
         .attendee-count { font-size: 14px; font-weight: 600; color: #333; }
         .confirm-btn { background: var(--primary-gradient); color: white; border: none; padding: 10px 18px; border-radius: 20px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
         .confirm-btn.attending { background: var(--success-color); }
+        .premium-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; padding: 6px 12px; border-radius: 15px; font-size: 10px; font-weight: 800; z-index: 3; box-shadow: 0 4px 15px rgba(255,215,0,0.4); }
         .bottom-nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 12px 0 max(env(safe-area-inset-bottom), 12px) 0; flex-shrink: 0; }
         .nav-item { text-align: center; cursor: pointer; padding: 8px 12px; border-radius: 12px; transition: all var(--transition-smooth); position: relative; min-width: 60px; }
         .nav-item.active { background: rgba(102, 126, 234, 0.1); color: #667eea; transform: translateY(-2px); }
@@ -114,6 +115,12 @@
         .gemini-suggest-btn { background: var(--primary-gradient); color: white; border: none; padding: 14px 24px; border-radius: 25px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); box-shadow: var(--shadow-light); display: block; margin: 20px auto 0 auto; }
         .gemini-suggest-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4); }
         .section-title { font-size: 18px; font-weight: 700; color: #333; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 2px solid #f0f0f0; }
+        .pricing-options { display: flex; flex-direction: column; gap: 12px; }
+        .pricing-option { border: 2px solid #e8ecf4; border-radius: 16px; padding: 15px; cursor: pointer; transition: all var(--transition-smooth); position: relative; }
+        .pricing-option.selected { border-color: #667eea; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05), rgba(118, 75, 162, 0.05)); }
+        .pricing-title { font-weight: 700; font-size: 16px; color: #1a1a1a; }
+        .pricing-description { font-size: 13px; color: #666; }
+        .pricing-price { font-size: 18px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 5px; }
     </style>
 </head>
 <body>
@@ -230,8 +237,36 @@
                             <option value="cultura">🎨 Cultura</option>
                         </select>
                     </div>
+
+                    <!-- Novos Planos de Preço -->
+                    <div class="form-group">
+                        <label class="form-label">Escolha o plano de divulgação:</label>
+                        <div class="pricing-options">
+                            <div class="pricing-option selected" onclick="selectPlan('gratuito', 0, this)">
+                                <div class="pricing-title">🆓 Gratuito</div>
+                                <div class="pricing-description">Alcance até 100 pessoas</div>
+                                <div class="pricing-price">R$ 0</div>
+                            </div>
+                            <div class="pricing-option" onclick="selectPlan('médio', 50, this)">
+                                <div class="pricing-title">⭐ Médio</div>
+                                <div class="pricing-description">Alcance até 500 pessoas</div>
+                                <div class="pricing-price">R$ 50</div>
+                            </div>
+                            <div class="pricing-option" onclick="selectPlan('premium', 100, this)">
+                                <div class="pricing-title">🚀 Premium</div>
+                                <div class="pricing-description">Alcance até 1000 pessoas</div>
+                                <div class="pricing-price">R$ 100</div>
+                            </div>
+                            <div class="pricing-option" onclick="selectPlan('ilimitado', 200, this)">
+                                <div class="pricing-title">� Ilimitado</div>
+                                <div class="pricing-description">Alcance ilimitado</div>
+                                <div class="pricing-price">R$ 200</div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <button type="submit" class="submit-btn" id="submitBtn">
-                        <span id="btn-text">Publicar Evento</span>
+                        <span id="btn-text">Publicar Evento (Grátis)</span>
                         <span id="btn-loading" class="loading" style="display: none;"></span>
                     </button>
                 </form>
@@ -266,6 +301,7 @@
 
         // ===== VARIÁVEIS GLOBAIS =====
         let currentUser = null;
+        let selectedPlan = { name: 'gratuito', price: 0 };
 
         // ===== INICIALIZAÇÃO DO APP =====
         document.addEventListener('DOMContentLoaded', function() {
@@ -449,10 +485,11 @@
 
             const attendees = data.attendees || [];
             const isAttending = currentUser ? attendees.includes(currentUser.uid) : false;
+            const plan = data.plan || { name: 'gratuito', price: 0 };
 
             const cardHTML = `
                 <div class="event-card" data-category="${data.category}" data-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}">
-                    ${isSuggestion ? '<div class="premium-badge" style="background: #764ba2; color: white;">SUGESTÃO</div>' : ''}
+                    ${plan.price > 0 ? `<div class="premium-badge">DESTAQUE</div>` : ''}
                     <div class="event-image" style="${imageStyle}">
                         ${data.category.toUpperCase()}
                     </div>
@@ -508,6 +545,20 @@
         }
 
         // ===== FORMULÁRIO =====
+        function selectPlan(planName, price, element) {
+            selectedPlan = { name: planName, price: price };
+            
+            document.querySelectorAll('.pricing-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+
+            const btnText = document.getElementById('btn-text');
+            if (price === 0) {
+                btnText.textContent = 'Publicar Evento (Grátis)';
+            } else {
+                btnText.textContent = `Publicar Evento (R$ ${price})`;
+            }
+        }
+
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!currentUser) {
@@ -532,7 +583,8 @@
                     creatorId: currentUser.uid,
                     creatorName: currentUser.displayName,
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    attendees: [] // NOVO: Inicia a lista de presença
+                    attendees: [],
+                    plan: selectedPlan // Salva o plano escolhido
                 };
                 await eventsCollection.add(eventData);
                 
@@ -652,7 +704,8 @@
                                 name: event.eventName,
                                 category: event.category,
                                 location: event.location,
-                                description: "Esta é uma sugestão da IA. Que tal torná-la realidade?"
+                                description: "Esta é uma sugestão da IA. Que tal torná-la realidade?",
+                                attendees: []
                             })
                         };
                         renderEventCard(fakeDoc, eventList, true);
@@ -680,6 +733,8 @@
         function closeModal() {
             document.getElementById('modalOverlay').classList.remove('show');
             document.getElementById('eventForm').reset();
+            // Resetar o plano para o padrão
+            selectPlan('gratuito', 0, document.querySelector('.pricing-option'));
         }
 
         // ===== FUNÇÕES UTILITÁRIAS =====
