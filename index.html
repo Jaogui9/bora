@@ -7,13 +7,6 @@
     <title>Bora - Eventos em Piracicaba</title>
     <link rel="manifest" href="manifest.json">
     
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-messaging-compat.js"></script>
-    
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#667eea">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -38,11 +31,7 @@
             --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
         
-        * { 
-            margin: 0; 
-            padding: 0; 
-            box-sizing: border-box; 
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         
         body { 
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
@@ -57,1022 +46,497 @@
             -moz-osx-font-smoothing: grayscale;
         }
         
-        .phone-container { 
-            width: min(375px, 100vw); 
-            height: min(667px, 100vh); 
-            background: #000; 
-            border-radius: 30px; 
-            padding: 4px; 
-            box-shadow: var(--shadow-heavy); 
-            position: relative; 
-            overflow: hidden;
-            transform: translateZ(0); /* GPU acceleration */
-        }
-        
-        .screen { 
-            width: 100%; 
-            height: 100%; 
-            background: #ffffff; 
-            border-radius: 26px; 
-            overflow: hidden; 
-            display: flex; 
-            flex-direction: column; 
-            position: relative;
-        }
-        
-        .status-bar { 
-            background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
-            color: white; 
-            padding: max(env(safe-area-inset-top), 8px) 20px 8px 20px;
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            font-size: 14px; 
-            font-weight: 600; 
-            flex-shrink: 0;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        .main-content { 
-            flex: 1; 
-            position: relative; 
-            overflow: hidden;
-        }
-        
-        .page { 
-            position: absolute; 
-            top: 0; 
-            left: 0; 
-            width: 100%; 
-            height: 100%; 
-            display: none; 
-            flex-direction: column; 
-            background: #ffffff;
-            opacity: 0;
-            transform: translateX(20px);
-            transition: all var(--transition-smooth);
-        }
-        
-        .page.active { 
-            display: flex;
-            opacity: 1;
-            transform: translateX(0);
-        }
-        
-        .header { 
-            background: var(--primary-gradient);
-            color: white; 
-            padding: 25px 20px 20px 20px;
-            text-align: center; 
-            flex-shrink: 0;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="20" cy="20" r="1" fill="white" opacity="0.1"/><circle cx="80" cy="40" r="0.5" fill="white" opacity="0.1"/><circle cx="40" cy="80" r="1.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
-            pointer-events: none;
-        }
-        
-        .logo { 
-            font-size: 36px; 
-            font-weight: 800;
-            position: relative;
-            z-index: 2;
-            cursor: pointer;
-            transition: transform var(--transition-fast);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-        }
-        
-        .logo:hover {
-            transform: scale(1.05);
-        }
-        
-        .subtitle { 
-            font-size: 15px; 
-            opacity: 0.95;
-            font-weight: 500;
-            margin-top: 5px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .location { 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            gap: 8px; 
-            margin-top: 12px; 
-            font-size: 13px;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            padding: 8px 16px;
-            border-radius: 20px;
-            position: relative;
-            z-index: 2;
-            display: inline-flex;
-        }
-        
-        .content { 
-            flex: 1; 
-            overflow-y: auto; 
-            padding: 20px 15px;
-            -webkit-overflow-scrolling: touch;
-            scroll-behavior: smooth;
-        }
-        
-        .filter-tabs { 
-            display: flex; 
-            gap: 10px; 
-            margin-bottom: 25px; 
-            overflow-x: auto; 
-            padding-bottom: 5px; 
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        
-        .filter-tabs::-webkit-scrollbar {
-            display: none;
-        }
-        
-        .tab { 
-            background: #f8f9fa;
-            border: 2px solid transparent;
-            padding: 12px 20px; 
-            border-radius: 25px; 
-            font-size: 13px; 
-            font-weight: 600;
-            white-space: nowrap; 
-            cursor: pointer; 
-            transition: all var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: var(--primary-gradient);
-            transition: left var(--transition-smooth);
-            z-index: 0;
-        }
-        
-        .tab span {
-            position: relative;
-            z-index: 1;
-        }
-        
-        .tab:hover {
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-light);
-        }
-        
-        .tab.active {
-            background: var(--primary-gradient);
-            color: white;
-            border-color: rgba(255,255,255,0.3);
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-light);
-        }
-        
-        .tab.active::before {
-            left: 0;
-        }
-        
-        .event-card { 
-            background: white; 
-            border-radius: var(--border-radius);
-            margin-bottom: 20px; 
-            box-shadow: var(--shadow-light);
-            overflow: hidden; 
-            position: relative;
-            transition: all var(--transition-smooth);
-            border: 1px solid rgba(0,0,0,0.05);
-        }
-        
-        .event-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.15);
-        }
-        
-        .premium-badge { 
-            position: absolute; 
-            top: 12px; 
-            right: 12px; 
-            background: linear-gradient(45deg, #FFD700, #FFA500);
-            color: #000; 
-            padding: 6px 12px; 
-            border-radius: 15px; 
-            font-size: 10px; 
-            font-weight: 800;
-            z-index: 3;
-            box-shadow: 0 4px 15px rgba(255,215,0,0.4);
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
-        .event-image { 
-            width: 100%; 
-            height: 140px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            color: white; 
-            font-size: 20px; 
-            font-weight: 800;
-            position: relative;
-            background: var(--secondary-gradient);
-            overflow: hidden;
-        }
-        
-        .event-image::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.6s;
-        }
-        
-        .event-card:hover .event-image::before {
-            left: 100%;
-        }
-        
-        .rodeio-special {
-            background: linear-gradient(45deg, #8B4513, #D2691E, #CD853F) !important;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .rodeio-special::after {
-            content: '🤠';
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            font-size: 28px;
-            animation: bounce 2s infinite;
-            filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
-        }
-        
-        @keyframes bounce {
-            0%, 20%, 50%, 80%, 100% { transform: translateY(0) rotate(0deg); }
-            10% { transform: translateY(-8px) rotate(-5deg); }
-            30% { transform: translateY(-12px) rotate(5deg); }
-            40% { transform: translateY(-5px) rotate(-2deg); }
-            60% { transform: translateY(-8px) rotate(3deg); }
-        }
-        
-        .show-special {
-            background: linear-gradient(45deg, #FF6B35, #F7931E, #FFD700) !important;
-        }
-        
-        .show-special::after {
-            content: '🎵';
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            font-size: 28px;
-            animation: musicNote 3s infinite;
-        }
-        
-        @keyframes musicNote {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.1) rotate(5deg); }
-            50% { transform: scale(1.05) rotate(-3deg); }
-            75% { transform: scale(1.08) rotate(2deg); }
-        }
-        
-        .event-info { 
-            padding: 20px;
-        }
-        
-        .event-title { 
-            font-size: 17px; 
-            font-weight: 700;
-            margin-bottom: 8px; 
-            color: #1a1a1a;
-            line-height: 1.4;
-        }
-        
-        .event-date { 
-            color: #667eea; 
-            font-size: 13px; 
-            font-weight: 600;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .event-date::before {
-            content: '📅';
-            font-size: 12px;
-        }
-        
-        .event-location { 
-            color: #666; 
-            font-size: 13px; 
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        
-        .event-location::before {
-            content: '📍';
-            font-size: 12px;
-        }
-        
-        .event-stats { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center;
-            margin-top: 12px;
-        }
-        
-        .going-count { 
-            font-size: 12px; 
-            color: var(--success-color);
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        .going-count::before {
-            content: '👥';
-            font-size: 12px;
-        }
-        
-        .event-price { 
-            background: var(--primary-gradient);
-            color: white; 
-            padding: 6px 12px; 
-            border-radius: 15px; 
-            font-size: 12px; 
-            font-weight: 700;
-            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
-        }
-        
-        .bottom-nav { 
-            background: rgba(255,255,255,0.95);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border-top: 1px solid rgba(0,0,0,0.1);
-            display: flex; 
-            justify-content: space-around; 
-            padding: 12px 0 max(env(safe-area-inset-bottom), 12px) 0;
-            flex-shrink: 0;
-        }
-        
-        .nav-item { 
-            text-align: center; 
-            cursor: pointer; 
-            padding: 8px 12px;
-            border-radius: 12px; 
-            transition: all var(--transition-smooth);
-            position: relative;
-            min-width: 60px;
-        }
-        
-        .nav-item::before {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 50%;
-            width: 0;
-            height: 3px;
-            background: var(--primary-gradient);
-            border-radius: 2px;
-            transition: all var(--transition-smooth);
-            transform: translateX(-50%);
-        }
-        
-        .nav-item.active::before {
-            width: 30px;
-        }
-        
-        .nav-item.active { 
-            background: rgba(102, 126, 234, 0.1);
-            color: #667eea;
-            transform: translateY(-2px);
-        }
-        
-        .nav-icon { 
-            font-size: 22px; 
-            margin-bottom: 4px;
-            transition: transform var(--transition-fast);
-        }
-        
-        .nav-item:hover .nav-icon {
-            transform: scale(1.1);
-        }
-        
-        .nav-label { 
-            font-size: 11px; 
-            font-weight: 600;
-        }
-        
-        .placeholder-text { 
-            text-align: center; 
-            margin-top: 60px; 
-            color: #999; 
-            font-size: 15px; 
-            padding: 0 30px;
-            line-height: 1.6;
-        }
-        
-        /* FAB Button Enhanced */
-        .fab {
-            position: fixed;
-            bottom: calc(80px + env(safe-area-inset-bottom));
-            right: 20px;
-            width: 64px;
-            height: 64px;
-            background: var(--primary-gradient);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-size: 28px;
-            font-weight: 300;
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-            cursor: pointer;
-            transition: all var(--transition-smooth);
-            z-index: 1000;
-            border: 3px solid rgba(255,255,255,0.2);
-        }
-        
-        .fab:hover {
-            transform: scale(1.1) rotate(90deg);
-            box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6);
-        }
-        
-        .fab:active {
-            transform: scale(0.95);
-        }
-        
-        /* Modal Styles - ULTRA OTIMIZADO PARA iOS */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
-            padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px);
-            opacity: 0;
-            transition: opacity var(--transition-smooth);
-        }
-        
-        .modal-overlay.show {
-            display: flex;
-            opacity: 1;
-        }
-        
-        .modal {
-            background: white;
-            border-radius: 25px;
-            width: 100%;
-            max-width: 420px;
-            max-height: min(85vh, 600px);
-            overflow: hidden;
-            box-shadow: var(--shadow-heavy);
-            position: relative;
-            transform: scale(0.8) translateY(50px);
-            transition: all var(--transition-smooth);
-        }
-        
-        .modal-overlay.show .modal {
-            transform: scale(1) translateY(0);
-        }
-        
-        .modal-header {
-            background: var(--primary-gradient);
-            color: white;
-            padding: 25px 20px 20px 20px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .modal-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            pointer-events: none;
-        }
-        
-        .modal-close {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: rgba(255,255,255,0.2);
-            border: none;
-            color: white;
-            font-size: 24px;
-            cursor: pointer;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all var(--transition-fast);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-        }
-        
-        .modal-close:hover {
-            background: rgba(255,255,255,0.3);
-            transform: rotate(90deg);
-        }
-        
-        .modal-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .modal-subtitle {
-            opacity: 0.95;
-            font-size: 15px;
-            position: relative;
-            z-index: 2;
-        }
-        
-        .modal-content {
-            padding: 25px 20px;
-            max-height: min(50vh, 400px);
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-            scrollbar-width: thin;
-            scrollbar-color: #ddd transparent;
-        }
-        
-        .modal-content::-webkit-scrollbar {
-            width: 6px;
-        }
-        
-        .modal-content::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 3px;
-        }
-        
-        .modal-content::-webkit-scrollbar-thumb {
-            background: #ddd;
-            border-radius: 3px;
-        }
-        
-        .form-group {
-            margin-bottom: 24px;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: 10px;
-            font-weight: 600;
-            color: #333;
-            font-size: 14px;
-        }
-        
-        .form-input {
-            width: 100%;
-            padding: 16px;
-            border: 2px solid #e8ecf4;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all var(--transition-smooth);
-            background: #fafbfc;
-            font-family: inherit;
-        }
-        
-        .form-input:focus {
-            outline: none;
-            border-color: #667eea;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-            transform: translateY(-1px);
-        }
-        
-        .pricing-options {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        
-        .pricing-option {
-            border: 2px solid #e8ecf4;
-            border-radius: 16px;
-            padding: 20px;
-            cursor: pointer;
-            transition: all var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .pricing-option::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(102, 126, 234, 0.05), transparent);
-            transition: left 0.6s;
-        }
-        
-        .pricing-option:hover {
-            border-color: #667eea;
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-light);
-        }
-        
-        .pricing-option:hover::before {
-            left: 100%;
-        }
-        
-        .pricing-option.selected {
-            border-color: #667eea;
-            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1), rgba(118, 75, 162, 0.1));
-            transform: translateY(-2px);
-            box-shadow: var(--shadow-light);
-        }
-        
-        .pricing-title {
-            font-weight: 700;
-            margin-bottom: 8px;
-            font-size: 16px;
-            color: #1a1a1a;
-        }
-        
-        .pricing-description {
-            font-size: 13px;
-            color: #666;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-        
-        .pricing-price {
-            font-size: 20px;
-            font-weight: 800;
-            background: var(--primary-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-top: 8px;
-        }
-        
-        .submit-btn {
-            width: 100%;
-            padding: 18px;
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 17px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all var(--transition-smooth);
-            position: relative;
-            overflow: hidden;
-            margin-top: 10px;
-        }
-        
-        .submit-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-            transition: left 0.6s;
-        }
-        
-        .submit-btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
-        }
-        
-        .submit-btn:hover::before {
-            left: 100%;
-        }
-        
-        .submit-btn:active {
-            transform: translateY(-1px);
-        }
-        
-        /* Easter Egg Styles Enhanced */
-        .piracicaba-mode {
-            background: linear-gradient(45deg, #FFD700, #FFA500, #FF8C00) !important;
-        }
-        
-        .piracicaba-mode .event-image {
-            background: linear-gradient(45deg, #8B4513, #D2691E, #CD853F) !important;
-        }
-        
-        .piracicaba-mode .header {
-            background: linear-gradient(135deg, #8B4513 0%, #D2691E 50%, #CD853F 100%) !important;
-        }
-        
-        .piracicaba-easter-egg {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border-radius: 25px;
-            padding: 40px 30px;
-            text-align: center;
-            box-shadow: var(--shadow-heavy);
-            z-index: 3000;
-            display: none;
-            max-width: 320px;
-            width: 90vw;
-        }
-        
-        .piracicaba-easter-egg.show {
-            display: block;
-            animation: bounceIn 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-        }
-        
-        @keyframes bounceIn {
-            0% { 
-                transform: translate(-50%, -50%) scale(0.3) rotate(-180deg); 
-                opacity: 0;
-            }
-            50% { 
-                transform: translate(-50%, -50%) scale(1.1) rotate(-90deg); 
-                opacity: 0.8;
-            }
-            100% { 
-                transform: translate(-50%, -50%) scale(1) rotate(0deg); 
-                opacity: 1;
-            }
-        }
-        
-        .easter-egg-emoji {
-            font-size: 64px;
-            margin-bottom: 15px;
-            animation: spin 2s linear infinite;
-        }
-        
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-        
-        .easter-egg-text {
-            font-size: 20px;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 8px;
-        }
-        
-        .easter-egg-subtitle {
-            font-size: 15px;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        
-        .easter-egg-close {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 20px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition-fast);
-        }
-        
-        .easter-egg-close:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
-        }
-        
-        /* Loading States */
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(102, 126, 234, 0.3);
-            border-radius: 50%;
-            border-top-color: #667eea;
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        /* Responsive Improvements */
-        @media (max-width: 390px) {
-            .phone-container {
-                border-radius: 0;
-                padding: 0;
-                height: 100vh;
-                width: 100vw;
-            }
-            
-            .screen {
-                border-radius: 0;
-            }
-            
-            .modal {
-                border-radius: 20px 20px 0 0;
-                max-height: 90vh;
-            }
-        }
-        
-        /* Dark Mode Support */
-        @media (prefers-color-scheme: dark) {
-            body {
-                background: #121212;
-            }
-            
-            .screen {
-                background: #1e1e1e;
-            }
-            
-            .event-card {
-                background: #2d2d2d;
-                border-color: rgba(255,255,255,0.1);
-            }
-            
-            .event-title {
-                color: #ffffff;
-            }
-            
-            .modal {
-                background: #2d2d2d;
-            }
-            
-            .form-input {
-                background: #3d3d3d;
-                border-color: rgba(255,255,255,0.2);
-                color: white;
-            }
-            
-            .pricing-option {
-                background: #3d3d3d;
-                border-color: rgba(255,255,255,0.2);
-            }
-            
-            .modal-title, .easter-egg-text {
-                color: #ffffff;
-            }
-        }
-        
-        /* Performance Optimizations */
-        .event-card, .tab, .nav-item, .fab, .modal {
-            will-change: transform;
-        }
-        
-        /* Accessibility Improvements */
-        @media (prefers-reduced-motion: reduce) {
-            *, *::before, *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
-        }
-        
-        /* High contrast mode */
-        @media (prefers-contrast: high) {
-            .tab, .event-card, .pricing-option {
-                border-width: 3px;
-            }
-        }
-
-        /* Novos estilos para integração Firebase (sem alterar a interface) */
-        .firebase-init-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.95);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 10000;
-            transition: opacity 0.5s ease;
-        }
-        
-        .firebase-init-content {
-            text-align: center;
-            padding: 30px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: var(--shadow-heavy);
-            max-width: 400px;
-            width: 90%;
-        }
-        
-        .firebase-init-spinner {
-            width: 50px;
-            height: 50px;
-            border: 5px solid #f3f3f3;
-            border-top: 5px solid #667eea;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
-        }
-        
-        .config-form {
-            text-align: left;
-            margin-top: 20px;
-        }
-        
-        .config-input {
-            width: 100%;
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 2px solid #e8ecf4;
-            border-radius: 10px;
-            font-size: 14px;
-        }
-        
-        .config-submit {
-            background: var(--primary-gradient);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            width: 100%;
-        }
+        .phone-container { width: min(375px, 100vw); height: min(667px, 100vh); background: #000; border-radius: 30px; padding: 4px; box-shadow: var(--shadow-heavy); position: relative; overflow: hidden; transform: translateZ(0); }
+        .screen { width: 100%; height: 100%; background: #ffffff; border-radius: 26px; overflow: hidden; display: flex; flex-direction: column; position: relative; }
+        .status-bar { background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%); color: white; padding: max(env(safe-area-inset-top), 8px) 20px 8px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; font-weight: 600; flex-shrink: 0; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .main-content { flex: 1; position: relative; overflow: hidden; }
+        .page { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; flex-direction: column; background: #ffffff; opacity: 0; transform: translateX(20px); transition: all var(--transition-smooth); }
+        .page.active { display: flex; opacity: 1; transform: translateX(0); }
+        .header { background: var(--primary-gradient); color: white; padding: 25px 20px 20px 20px; text-align: center; flex-shrink: 0; position: relative; overflow: hidden; }
+        .logo { font-size: 36px; font-weight: 800; position: relative; z-index: 2; cursor: pointer; transition: transform var(--transition-fast); text-shadow: 2px 2px 4px rgba(0,0,0,0.2); }
+        .subtitle { font-size: 15px; opacity: 0.95; font-weight: 500; margin-top: 5px; position: relative; z-index: 2; }
+        .location { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; font-size: 13px; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); padding: 8px 16px; border-radius: 20px; position: relative; z-index: 2; display: inline-flex; }
+        .content { flex: 1; overflow-y: auto; padding: 20px 15px; -webkit-overflow-scrolling: touch; scroll-behavior: smooth; }
+        .filter-tabs { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding-bottom: 5px; -webkit-overflow-scrolling: touch; scrollbar-width: none; -ms-overflow-style: none; }
+        .filter-tabs::-webkit-scrollbar { display: none; }
+        .tab { background: #f8f9fa; border: 2px solid transparent; padding: 12px 20px; border-radius: 25px; font-size: 13px; font-weight: 600; white-space: nowrap; cursor: pointer; transition: all var(--transition-smooth); position: relative; overflow: hidden; }
+        .tab.active { background: var(--primary-gradient); color: white; border-color: rgba(255,255,255,0.3); transform: translateY(-2px); box-shadow: var(--shadow-light); }
+        .event-card { background: white; border-radius: var(--border-radius); margin-bottom: 20px; box-shadow: var(--shadow-light); overflow: hidden; position: relative; transition: all var(--transition-smooth); border: 1px solid rgba(0,0,0,0.05); }
+        .event-card:hover { transform: translateY(-5px); box-shadow: 0 15px 35px rgba(0,0,0,0.15); }
+        .premium-badge { position: absolute; top: 12px; right: 12px; background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; padding: 6px 12px; border-radius: 15px; font-size: 10px; font-weight: 800; z-index: 3; box-shadow: 0 4px 15px rgba(255,215,0,0.4); animation: pulse 2s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        .event-image { width: 100%; height: 140px; display: flex; align-items: center; justify-content: center; color: white; font-size: 20px; font-weight: 800; position: relative; background: var(--secondary-gradient); overflow: hidden; background-size: cover; background-position: center; }
+        .event-info { padding: 20px; }
+        .event-title { font-size: 17px; font-weight: 700; margin-bottom: 8px; color: #1a1a1a; line-height: 1.4; }
+        .event-date { color: #667eea; font-size: 13px; font-weight: 600; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+        .event-location { color: #666; font-size: 13px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; }
+        .event-stats { display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
+        .going-count { font-size: 12px; color: var(--success-color); font-weight: 600; display: flex; align-items: center; gap: 4px; }
+        .event-price { background: var(--primary-gradient); color: white; padding: 6px 12px; border-radius: 15px; font-size: 12px; font-weight: 700; box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3); }
+        .bottom-nav { background: rgba(255,255,255,0.95); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-top: 1px solid rgba(0,0,0,0.1); display: flex; justify-content: space-around; padding: 12px 0 max(env(safe-area-inset-bottom), 12px) 0; flex-shrink: 0; }
+        .nav-item { text-align: center; cursor: pointer; padding: 8px 12px; border-radius: 12px; transition: all var(--transition-smooth); position: relative; min-width: 60px; }
+        .nav-item.active { background: rgba(102, 126, 234, 0.1); color: #667eea; transform: translateY(-2px); }
+        .nav-icon { font-size: 22px; margin-bottom: 4px; transition: transform var(--transition-fast); }
+        .nav-label { font-size: 11px; font-weight: 600; }
+        .placeholder-text { text-align: center; margin-top: 60px; color: #999; font-size: 15px; padding: 0 30px; line-height: 1.6; }
+        .fab { position: fixed; bottom: calc(80px + env(safe-area-inset-bottom)); right: 20px; width: 64px; height: 64px; background: var(--primary-gradient); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 28px; font-weight: 300; box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4); cursor: pointer; transition: all var(--transition-smooth); z-index: 1000; border: 3px solid rgba(255,255,255,0.2); }
+        .fab:hover { transform: scale(1.1) rotate(90deg); box-shadow: 0 12px 35px rgba(102, 126, 234, 0.6); }
+        .fab.hidden { transform: scale(0); opacity: 0; pointer-events: none; }
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); display: none; align-items: center; justify-content: center; z-index: 2000; padding: env(safe-area-inset-top, 20px) env(safe-area-inset-right, 20px) env(safe-area-inset-bottom, 20px) env(safe-area-inset-left, 20px); opacity: 0; transition: opacity var(--transition-smooth); }
+        .modal-overlay.show { display: flex; opacity: 1; }
+        .modal { background: white; border-radius: 25px; width: 100%; max-width: 420px; max-height: min(85vh, 600px); overflow: hidden; box-shadow: var(--shadow-heavy); position: relative; transform: scale(0.8) translateY(50px); transition: all var(--transition-smooth); }
+        .modal-overlay.show .modal { transform: scale(1) translateY(0); }
+        .modal-header { background: var(--primary-gradient); color: white; padding: 25px 20px 20px 20px; position: relative; overflow: hidden; }
+        .modal-close { position: absolute; top: 15px; right: 15px; background: rgba(255,255,255,0.2); border: none; color: white; font-size: 24px; cursor: pointer; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; transition: all var(--transition-fast); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+        .modal-title { font-size: 22px; font-weight: 700; margin-bottom: 6px; position: relative; z-index: 2; }
+        .modal-subtitle { opacity: 0.95; font-size: 15px; position: relative; z-index: 2; }
+        .modal-content { padding: 25px 20px; max-height: min(50vh, 400px); overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; margin-bottom: 10px; font-weight: 600; color: #333; font-size: 14px; }
+        .form-input { width: 100%; padding: 16px; border: 2px solid #e8ecf4; border-radius: 12px; font-size: 16px; transition: all var(--transition-smooth); background: #fafbfc; font-family: inherit; }
+        .form-input:focus { outline: none; border-color: #667eea; background: white; box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1); transform: translateY(-1px); }
+        .submit-btn { width: 100%; padding: 18px; background: var(--primary-gradient); color: white; border: none; border-radius: 16px; font-size: 17px; font-weight: 700; cursor: pointer; transition: all var(--transition-smooth); position: relative; overflow: hidden; margin-top: 10px; }
+        .submit-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4); }
+        .submit-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; }
+        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(255, 255, 255, 0.3); border-radius: 50%; border-top-color: #ffffff; animation: spin 1s ease-in-out infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        /* Estilos para Upload de Imagem */
+        .image-upload-container { text-align: center; margin-bottom: 20px; }
+        .image-preview { width: 100%; height: 150px; border: 2px dashed #e8ecf4; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; background-color: #fafbfc; transition: all var(--transition-smooth); overflow: hidden; }
+        .image-preview:hover { border-color: #667eea; }
+        .image-preview img { width: 100%; height: 100%; object-fit: cover; }
+        .image-preview-text { color: #999; }
+        #eventImage { display: none; }
+        /* Estilos para Perfil */
+        .profile-container { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px; }
+        .profile-pic { width: 100px; height: 100px; border-radius: 50%; margin-bottom: 15px; border: 4px solid white; box-shadow: var(--shadow-light); }
+        .profile-name { font-size: 22px; font-weight: 700; color: #333; }
+        .profile-email { font-size: 14px; color: #666; margin-bottom: 25px; }
+        .google-btn { display: inline-flex; align-items: center; justify-content: center; gap: 15px; background-color: #fff; color: #444; border-radius: 8px; border: 1px solid #ddd; padding: 12px 24px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); box-shadow: var(--shadow-light); }
+        .google-btn:hover { background-color: #f8f8f8; box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+        .google-btn img { width: 24px; height: 24px; }
+        .logout-btn { background: var(--danger-color); color: white; border: none; padding: 12px 24px; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all var(--transition-fast); }
+        .logout-btn:hover { opacity: 0.9; transform: translateY(-2px); }
     </style>
 </head>
 <body>
-    <!-- Overlay de configuração do Firebase (será removido após configuração) -->
-    <div class="firebase-init-overlay" id="firebaseInitOverlay">
-        <div class="firebase-init-content">
-            <div class="firebase-init-spinner"></div>
-            <h3>Configuração do Firebase</h3>
-            <p>Para conectar com o Firebase, preencha as informações abaixo:</p>
-            
-            <div class="config-form">
-                <input type="text" class="config-input" id="apiKey" placeholder="API Key">
-                <input type="text" class="config-input" id="authDomain" placeholder="Auth Domain">
-                <input type="text" class="config-input" id="projectId" placeholder="Project ID">
-                <input type="text" class="config-input" id="storageBucket" placeholder="Storage Bucket">
-                <input type="text" class="config-input" id="messagingSenderId" placeholder="Messaging Sender ID">
-                <input type="text" class="config-input" id="appId" placeholder="App ID">
-                
-                <button class="config-submit" onclick="saveFirebaseConfig()">Salvar Configuração</button>
-                <p style="margin-top: 15px; font-size: 12px; color: #666;">
-                    Estas informações estão disponíveis no console do Firebase após criar seu projeto.
-                </p>
-            </div>
-        </div>
-    </div>
-
     <div class="phone-container">
         <div class="screen">
-            <div class="status-bar">
-                <span>9:41</span>
-                <span>📶 📶 📶 🔋</span>
-            </div>
+            <div class="status-bar"><span>9:41</span><span>📶 🔋</span></div>
             <div class="main-content">
+                <!-- PÁGINA INÍCIO -->
                 <div id="page-inicio" class="page active">
                     <div class="header">
-                        <div class="logo" id="logoClick">Bora</div>
+                        <div class="logo">Bora</div>
                         <div class="subtitle">Encontre os melhores eventos</div>
                         <div class="location">📍 Piracicaba, SP</div>
                     </div>
                     <div class="content">
                         <div class="filter-tabs">
-                            <div class="tab active" onclick="filterEvents('todos')"><span>Todos</span></div>
-                            <div class="tab" onclick="filterEvents('festas')"><span>Festas</span></div>
-                            <div class="tab" onclick="filterEvents('shows')"><span>Shows</span></div
+                            <div class="tab active" onclick="filterEvents('todos', event)"><span>Todos</span></div>
+                            <div class="tab" onclick="filterEvents('festas', event)"><span>Festas</span></div>
+                            <div class="tab" onclick="filterEvents('shows', event)"><span>Shows</span></div>
+                            <div class="tab" onclick="filterEvents('rodeios', event)"><span>Rodeios</span></div>
+                        </div>
+                        <div id="event-list">
+                            <p class="placeholder-text">Carregando eventos...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PÁGINA MEUS EVENTOS -->
+                <div id="page-meus-eventos" class="page">
+                    <div class="header">
+                        <div class="logo">Meus Eventos</div>
+                        <div class="subtitle">Eventos que você criou</div>
+                    </div>
+                    <div class="content">
+                        <div id="my-events-list">
+                            <!-- Conteúdo dinâmico aqui -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PÁGINA PRÓXIMOS -->
+                <div id="page-proximos" class="page">
+                    <div class="header">
+                        <div class="logo">Eventos Próximos</div>
+                        <div class="subtitle">Baseado na sua localização</div>
+                    </div>
+                    <div class="content">
+                         <p class="placeholder-text">Em breve, você poderá ver eventos perto de você! 🗺️</p>
+                    </div>
+                </div>
+                
+                <!-- PÁGINA PERFIL -->
+                <div id="page-perfil" class="page">
+                    <div class="header">
+                        <div class="logo">Meu Perfil</div>
+                        <div class="subtitle">Sua conta e configurações</div>
+                    </div>
+                    <div class="content" id="profile-content">
+                        <!-- Conteúdo dinâmico de login/perfil -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bottom-nav">
+                <div class="nav-item active" onclick="showPage('inicio')"> <div class="nav-icon">🏠</div> <div class="nav-label">Início</div> </div>
+                <div class="nav-item" onclick="showPage('meus-eventos')"> <div class="nav-icon">📅</div> <div class="nav-label">Meus Eventos</div> </div>
+                <div class="nav-item" onclick="showPage('proximos')"> <div class="nav-icon">📍</div> <div class="nav-label">Próximos</div> </div>
+                <div class="nav-item" onclick="showPage('perfil')"> <div class="nav-icon">👤</div> <div class="nav-label">Perfil</div> </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botão Flutuante (FAB) -->
+    <div class="fab" id="fab" onclick="openModal()">+</div>
+    
+    <!-- Modal Criar Evento -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+                <div class="modal-title">Criar Evento</div>
+                <div class="modal-subtitle">Divulgue seu evento em Piracicaba</div>
+            </div>
+            <div class="modal-content">
+                <form id="eventForm" novalidate>
+                    <div class="image-upload-container">
+                        <label for="eventImage" class="form-label">Imagem do Evento</label>
+                        <div class="image-preview" id="imagePreview" onclick="document.getElementById('eventImage').click();">
+                            <span class="image-preview-text">Clique para adicionar uma imagem</span>
+                        </div>
+                        <input type="file" id="eventImage" accept="image/*">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="eventName">Nome do Evento *</label>
+                        <input type="text" class="form-input" id="eventName" placeholder="Ex: Festa da Faculdade" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="eventDate">Data e Hora *</label>
+                        <input type="datetime-local" class="form-input" id="eventDate" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label" for="eventLocation">Local *</label>
+                        <input type="text" class="form-input" id="eventLocation" placeholder="Endereço completo" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Categoria</label>
+                        <select class="form-input" id="eventCategory" required>
+                            <option value="festas">🎉 Festas</option>
+                            <option value="shows">🎵 Shows</option>
+                            <option value="rodeios">🤠 Rodeios</option>
+                            <option value="cultura">🎨 Cultura</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="submit-btn" id="submitBtn">
+                        <span id="btn-text">Publicar Evento</span>
+                        <span id="btn-loading" class="loading" style="display: none;"></span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Toast Notifications -->
+    <div id="toast-container" style="position: fixed; top: 20px; right: 20px; z-index: 4000; display: flex; flex-direction: column; gap: 10px;"></div>
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.7/firebase-storage-compat.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyDsCKb-e9GHtBTdKwEmRoSTGCQOJjFZfEg",
+            authDomain: "meu-app-eventos.firebaseapp.com",
+            projectId: "meu-app-eventos",
+            storageBucket: "meu-app-eventos.firebasestorage.app",
+            messagingSenderId: "611882575960",
+            appId: "1:611882575960:web:b39bd5a45f4d4d63c2022d",
+            measurementId: "G-2Y4YQ003HC"
+        };
+
+        // ===== INICIALIZAÇÃO FIREBASE =====
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const storage = firebase.storage();
+        const eventsCollection = db.collection('events');
+
+        // ===== VARIÁVEIS GLOBAIS =====
+        let currentUser = null;
+        let selectedImageFile = null;
+
+        // ===== INICIALIZAÇÃO DO APP =====
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+            setupEventListeners();
+        });
+
+        function initializeApp() {
+            const now = new Date();
+            const minDate = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            document.getElementById('eventDate').min = minDate;
+            console.log('🚀 Bora App initialized with Firebase!');
+        }
+
+        // ===== LISTENERS DE EVENTOS =====
+        function setupEventListeners() {
+            document.getElementById('eventForm').addEventListener('submit', handleFormSubmit);
+            document.getElementById('eventImage').addEventListener('change', handleImageSelect);
+            document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+        }
+
+        // ===== AUTENTICAÇÃO =====
+        auth.onAuthStateChanged(user => {
+            currentUser = user;
+            updateUIForAuthState();
+            if (user) {
+                loadAllEvents();
+                loadMyEvents();
+            } else {
+                // Limpa as listas se o usuário deslogar
+                document.getElementById('event-list').innerHTML = '<p class="placeholder-text">Faça login para ver os eventos.</p>';
+                document.getElementById('my-events-list').innerHTML = '<p class="placeholder-text">Faça login para ver seus eventos.</p>';
+            }
+        });
+
+        function updateUIForAuthState() {
+            const profileContent = document.getElementById('profile-content');
+            const fab = document.getElementById('fab');
+
+            if (currentUser) {
+                // Usuário Logado
+                profileContent.innerHTML = `
+                    <div class="profile-container">
+                        <img src="${currentUser.photoURL}" alt="Foto do Perfil" class="profile-pic">
+                        <div class="profile-name">${currentUser.displayName}</div>
+                        <div class="profile-email">${currentUser.email}</div>
+                        <button class="logout-btn" onclick="signOut()">Sair</button>
+                    </div>
+                `;
+                fab.classList.remove('hidden');
+            } else {
+                // Usuário Deslogado
+                profileContent.innerHTML = `
+                    <div class="profile-container">
+                        <p class="placeholder-text" style="margin-bottom: 20px;">Faça login para criar eventos e ver seu perfil.</p>
+                        <button class="google-btn" onclick="signInWithGoogle()">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" alt="Google logo">
+                            <span>Entrar com Google</span>
+                        </button>
+                    </div>
+                `;
+                fab.classList.add('hidden');
+            }
+        }
+
+        function signInWithGoogle() {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider)
+                .then(result => {
+                    showToast(`Bem-vindo, ${result.user.displayName}!`, 'success');
+                })
+                .catch(error => {
+                    console.error("Erro no login com Google:", error);
+                    showToast('Erro ao fazer login. Tente novamente.', 'error');
+                });
+        }
+
+        function signOut() {
+            auth.signOut()
+                .then(() => {
+                    showToast('Você saiu da sua conta.', 'info');
+                })
+                .catch(error => {
+                    console.error("Erro ao sair:", error);
+                    showToast('Erro ao sair da conta.', 'error');
+                });
+        }
+
+        // ===== NAVEGAÇÃO E FILTRO =====
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            if (pageId === 'meus-eventos' && !currentUser) {
+                showToast('Faça login para acessar seus eventos.', 'warning');
+                showPage('perfil');
+                return;
+            }
+
+            document.getElementById(`page-${pageId}`).classList.add('active');
+            document.querySelector(`.nav-item[onclick="showPage('${pageId}')"]`).classList.add('active');
+        }
+
+        function filterEvents(category, event) {
+            // Atualiza o estado visual da aba ativa
+            document.querySelectorAll('.filter-tabs .tab').forEach(tab => tab.classList.remove('active'));
+            if (event) {
+                event.currentTarget.classList.add('active');
+            }
+
+            // Filtra os cards de evento
+            const eventCards = document.querySelectorAll('#event-list .event-card');
+            eventCards.forEach(card => {
+                const cardCategory = card.dataset.category;
+                if (category === 'todos' || cardCategory === category) {
+                    card.style.display = 'block';
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+        }
+
+        // ===== GERENCIAMENTO DE EVENTOS (FIRESTORE) =====
+        function loadAllEvents() {
+            const eventList = document.getElementById('event-list');
+            eventsCollection.orderBy('date', 'asc').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    eventList.innerHTML = '<p class="placeholder-text">Nenhum evento por aqui. Crie o primeiro! 🚀</p>';
+                    return;
+                }
+                eventList.innerHTML = '';
+                snapshot.forEach(doc => renderEventCard(doc.data(), doc.id, eventList));
+            }, err => {
+                console.error("Erro ao carregar eventos:", err);
+                showToast('Erro ao carregar eventos.', 'error');
+            });
+        }
+
+        function loadMyEvents() {
+            if (!currentUser) return;
+            const myEventList = document.getElementById('my-events-list');
+            eventsCollection.where('creatorId', '==', currentUser.uid).orderBy('date', 'asc').onSnapshot(snapshot => {
+                if (snapshot.empty) {
+                    myEventList.innerHTML = '<p class="placeholder-text">Você ainda não criou nenhum evento. Que tal começar?</p>';
+                    return;
+                }
+                myEventList.innerHTML = '';
+                snapshot.forEach(doc => renderEventCard(doc.data(), doc.id, myEventList));
+            }, err => {
+                console.error("Erro ao carregar meus eventos:", err);
+            });
+        }
+
+        function renderEventCard(data, id, container) {
+            const eventDate = new Date(data.date).toLocaleString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
+            const imageStyle = data.imageUrl ? `background-image: url('${data.imageUrl}')` : `background: var(--secondary-gradient);`;
+            const cardHTML = `
+                <div class="event-card" data-category="${data.category}" data-id="${id}">
+                    <div class="event-image" style="${imageStyle}">
+                        ${!data.imageUrl ? data.category.toUpperCase() : ''}
+                    </div>
+                    <div class="event-info">
+                        <div class="event-title">${data.name}</div>
+                        <div class="event-date">📅 ${eventDate}</div>
+                        <div class="event-location">📍 ${data.location}</div>
+                    </div>
+                </div>
+            `;
+            container.insertAdjacentHTML('beforeend', cardHTML);
+        }
+
+        // ===== FORMULÁRIO E UPLOAD =====
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            if (!currentUser) {
+                showToast('Você precisa estar logado para criar um evento.', 'error');
+                return;
+            }
+
+            const submitBtn = document.getElementById('submitBtn');
+            const btnText = document.getElementById('btn-text');
+            const btnLoading = document.getElementById('btn-loading');
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoading.style.display = 'inline-block';
+
+            try {
+                let imageUrl = '';
+                if (selectedImageFile) {
+                    const imagePath = `event-images/${currentUser.uid}/${Date.now()}_${selectedImageFile.name}`;
+                    const fileRef = storage.ref(imagePath);
+                    const uploadTask = await fileRef.put(selectedImageFile);
+                    imageUrl = await uploadTask.ref.getDownloadURL();
+                }
+
+                const eventData = {
+                    name: document.getElementById('eventName').value,
+                    date: document.getElementById('eventDate').value,
+                    location: document.getElementById('eventLocation').value,
+                    category: document.getElementById('eventCategory').value,
+                    imageUrl: imageUrl,
+                    creatorId: currentUser.uid,
+                    creatorName: currentUser.displayName,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                };
+                await eventsCollection.add(eventData);
+                
+                showToast('🎉 Evento criado com sucesso!', 'success');
+                closeModal();
+
+            } catch (error) {
+                console.error("Erro ao criar evento:", error);
+                showToast('Erro ao criar evento. Tente novamente.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoading.style.display = 'none';
+            }
+        }
+
+        function handleImageSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                selectedImageFile = file;
+                const previewContainer = document.getElementById('imagePreview');
+                previewContainer.innerHTML = '';
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = document.createElement('img');
+                    img.src = event.target.result;
+                    previewContainer.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // ===== MODAL =====
+        function openModal() {
+            if (!currentUser) {
+                showToast('Faça login para criar um evento.', 'warning');
+                showPage('perfil');
+                return;
+            }
+            document.getElementById('modalOverlay').classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            document.getElementById('eventForm').reset();
+            const previewContainer = document.getElementById('imagePreview');
+            previewContainer.innerHTML = '<span class="image-preview-text">Clique para adicionar uma imagem</span>';
+            selectedImageFile = null;
+        }
+
+        // ===== FUNÇÕES UTILITÁRIAS =====
+        function showToast(message, type = 'info') {
+            const toast = document.createElement('div');
+            const colors = { success: '#28a745', error: '#dc3545', warning: '#ffc107', info: '#667eea' };
+            toast.style.cssText = `background: ${colors[type]}; color: white; padding: 16px 20px; border-radius: 12px; box-shadow: var(--shadow-heavy); font-weight: 600; font-size: 14px; max-width: 320px; transform: translateX(120%); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);`;
+            toast.textContent = message;
+            const container = document.getElementById('toast-container');
+            container.appendChild(toast);
+            setTimeout(() => { toast.style.transform = 'translateX(0)'; }, 100);
+            setTimeout(() => {
+                toast.style.transform = 'translateX(120%)';
+                setTimeout(() => { if (toast.parentNode) toast.parentNode.removeChild(toast); }, 300);
+            }, 3500);
+        }
+    </script>
+</body>
+</html>
