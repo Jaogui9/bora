@@ -124,7 +124,7 @@
         .pricing-description { font-size: 13px; color: #666; }
         .pricing-price { font-size: 18px; font-weight: 800; background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-top: 5px; }
         .detail-map-placeholder { width: 100%; height: 150px; background-color: #e9ecef; border-radius: var(--border-radius); display: flex; align-items: center; justify-content: center; color: #6c757d; font-weight: 600; margin: 15px 0; }
-        .attendee-list { list-style: none; padding: 0; }
+        .attendee-list { list-style: none; padding: 0; max-height: 150px; overflow-y: auto; }
         .attendee-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; }
         .attendee-pic { width: 32px; height: 32px; border-radius: 50%; }
         .attendee-name { font-weight: 500; }
@@ -335,6 +335,7 @@
         const auth = firebase.auth();
         const db = firebase.firestore();
         const eventsCollection = db.collection('events');
+        const usersCollection = db.collection('users'); // Coleção para guardar dados dos utilizadores
 
         // ===== VARIÁVEIS GLOBAIS =====
         let currentUser = null;
@@ -367,6 +368,13 @@
             currentUser = user;
             updateUIForAuthState();
             if (user) {
+                // Guarda ou atualiza os dados do utilizador no Firestore
+                usersCollection.doc(user.uid).set({
+                    name: user.displayName,
+                    email: user.email,
+                    photoURL: user.photoURL
+                }, { merge: true });
+
                 loadAllEvents();
                 loadMyEvents();
                 loadAttendingEvents();
@@ -528,7 +536,6 @@
             const isOwner = currentUser ? data.creatorId === currentUser.uid : false;
             const plan = data.plan || { name: 'gratuito', price: 0 };
 
-            // Ação de clique no card principal
             const cardClickAction = isSuggestion ? '' : `onclick="showEventDetails('${id}')"`;
 
             const cardHTML = `
@@ -807,6 +814,97 @@
             document.getElementById('eventForm').reset();
             // Resetar o plano para o padrão
             selectPlan('gratuito', 0, document.querySelector('.pricing-option'));
+        }
+
+        // ===== MODAL DE DETALHES DO EVENTO =====
+        async function showEventDetails(eventId) {
+            const modal = document.getElementById('eventDetailModal');
+            const title = document.getElementById('eventDetailTitle');
+            const content = document.getElementById('eventDetailContent');
+            
+            content.innerHTML = '<p class="placeholder-text">A carregar detalhes...</p>';
+            modal.classList.add('show');
+
+            try {
+                const eventRef = eventsCollection.doc(eventId);
+                const doc = await eventRef.get();
+                if (!doc.exists) {
+                    showToast('Evento não encontrado', 'error');
+                    closeEventDetails();
+                    return;
+                }
+                const data = doc.data();
+                title.textContent = data.name;
+
+                // Buscar dados dos participantes
+                let attendeesHTML = '<p>Ninguém confirmou presença ainda.</p>';
+                if (data.attendees && data.attendees.length > 0) {
+                    const attendeePromises = data.attendees.map(uid => usersCollection.doc(uid).get());
+                    const attendeeDocs = await Promise.all(attendeePromises);
+                    
+                    attendeesHTML = '<ul class="attendee-list">';
+                    attendeeDocs.forEach(attendeeDoc => {
+                        if (attendeeDoc.exists) {
+                            const attendeeData = attendeeDoc.data();
+                            attendeesHTML += `
+                                <li class="attendee-item">
+                                    <img src="${attendeeData.photoURL}" alt="${attendeeData.name}" class="attendee-pic">
+                                    <span class="attendee-name">${attendeeData.name}</span>
+                                </li>
+                            `;
+                        }
+                    });
+                    attendeesHTML += '</ul>';
+                }
+
+                content.innerHTML = `
+                    <p><strong>📅 Data:</strong> ${new Date(data.date).toLocaleString('pt-BR')}</p>
+                    <p><strong>📍 Local:</strong> ${data.location}</p>
+                    <div class="detail-map-placeholder">Espaço para o Mapa</div>
+                    <p style="margin-top: 15px;">${data.description}</p>
+                    <div class="section-title" style="margin-top: 20px;">Quem Vai?</div>
+                    ${attendeesHTML}
+                    <div id="audience-analysis"></div>
+                    <button class="gemini-suggest-btn" style="margin-top: 15px;" onclick="analyzeAudience('${eventId}')">✨ Analisar Público</button>
+                `;
+
+            } catch (error) {
+                console.error("Erro ao carregar detalhes do evento:", error);
+                showToast('Não foi possível carregar os detalhes.', 'error');
+                closeEventDetails();
+            }
+        }
+
+        function closeEventDetails() {
+            document.getElementById('eventDetailModal').classList.remove('show');
+        }
+
+        async function analyzeAudience(eventId) {
+            const analysisDiv = document.getElementById('audience-analysis');
+            analysisDiv.innerHTML = '<p>Analisando...</p>';
+            
+            const eventRef = eventsCollection.doc(eventId);
+            const doc = await eventRef.get();
+            if (!doc.exists) return;
+
+            const data = doc.data();
+            if (!data.attendees || data.attendees.length === 0) {
+                analysisDiv.innerHTML = '<p>Ninguém para analisar ainda!</p>';
+                return;
+            }
+
+            const attendeePromises = data.attendees.map(uid => usersCollection.doc(uid).get());
+            const attendeeDocs = await Promise.all(attendeePromises);
+            const attendeeNames = attendeeDocs.map(d => d.data().name);
+
+            const prompt = `Baseado na seguinte lista de nomes de pessoas que confirmaram presença em um evento chamado "${data.name}", crie uma análise curta e divertida (uma frase) sobre o perfil do público: ${attendeeNames.join(', ')}. Seja criativo e use o tom do app "Bora". Responda em português do Brasil.`;
+
+            const analysis = await callGeminiAPI(prompt);
+            if (analysis) {
+                analysisDiv.innerHTML = `<p style="font-weight: 500; margin-top: 10px;">${analysis}</p>`;
+            } else {
+                analysisDiv.innerHTML = '';
+            }
         }
 
         // ===== FUNÇÕES UTILITÁRIAS =====
