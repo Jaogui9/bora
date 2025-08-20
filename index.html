@@ -317,6 +317,7 @@
             }
         }
 
+        // MODIFICADO: Usa signInWithPopup que funciona melhor em ambientes de desenvolvimento.
         function signInWithGoogle() {
             const provider = new firebase.auth.GoogleAuthProvider();
             auth.signInWithPopup(provider)
@@ -325,7 +326,14 @@
                 })
                 .catch(error => {
                     console.error("Erro no login com Google:", error);
-                    showToast('Erro ao fazer login. Tente novamente.', 'error');
+                    // Erros comuns que podem ser mostrados ao utilizador
+                    if (error.code === 'auth/popup-closed-by-user') {
+                        showToast('Login cancelado.', 'info');
+                    } else if (error.code === 'auth/popup-blocked') {
+                        showToast('Pop-up bloqueado pelo navegador. Por favor, permita os pop-ups para este site.', 'warning');
+                    } else {
+                        showToast('Ocorreu um erro durante o login.', 'error');
+                    }
                 });
         }
 
@@ -346,7 +354,7 @@
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             
             if (pageId === 'meus-eventos' && !currentUser) {
-                showToast('Faça login para acessar seus eventos.', 'warning');
+                showToast('Faça login para aceder aos seus eventos.', 'warning');
                 showPage('perfil');
                 return;
             }
@@ -372,7 +380,7 @@
             });
         }
 
-        // ===== GERENCIAMENTO DE EVENTOS (FIRESTORE) =====
+        // ===== GESTÃO DE EVENTOS (FIRESTORE) =====
         function loadAllEvents() {
             const eventList = document.getElementById('event-list');
             eventsCollection.orderBy('date', 'asc').onSnapshot(snapshot => {
@@ -404,7 +412,7 @@
                 myEventList.innerHTML = '';
                 snapshot.forEach(doc => renderEventCard(doc.data(), doc.id, myEventList));
             }, err => {
-                console.error("Erro ao carregar meus eventos:", err);
+                console.error("Erro ao carregar os meus eventos:", err);
             });
         }
 
@@ -432,7 +440,7 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             if (!currentUser) {
-                showToast('Você precisa estar logado para criar um evento.', 'error');
+                showToast('Você precisa de estar logado para criar um evento.', 'error');
                 return;
             }
 
@@ -469,7 +477,7 @@
             }
         }
 
-        // ===== FUNCIONALIDADES COM GEMINI API =====
+        // ===== FUNCIONALIDADES COM A API GEMINI =====
         async function callGeminiAPI(prompt, isJson = false) {
             const apiKey = ""; // Deixe em branco, será fornecido pelo ambiente
             const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
@@ -555,7 +563,7 @@
 
         async function suggestEvents() {
             const eventList = document.getElementById('event-list');
-            eventList.innerHTML = '<p class="placeholder-text">✨ A IA está pensando nas melhores ideias para você...</p>';
+            eventList.innerHTML = '<p class="placeholder-text">✨ A IA está a pensar nas melhores ideias para si...</p>';
 
             const prompt = `Sugira 3 ideias criativas de eventos para a cidade de Piracicaba, SP, Brasil. Considere a cultura local. Retorne apenas um JSON válido, sem markdown, seguindo o schema. As categorias devem ser uma de: "festas", "shows", "rodeios", "cultura".`;
             
@@ -575,7 +583,7 @@
                         renderEventCard(eventData, `suggestion-${index}`, eventList, true);
                     });
                 } catch (e) {
-                    console.error("Erro ao parsear JSON da IA:", e);
+                    console.error("Erro ao analisar JSON da IA:", e);
                     showToast("A IA retornou uma sugestão inválida. Tente novamente.", "error");
                     eventList.innerHTML = '<p class="placeholder-text">Ocorreu um erro. Tente novamente.</p>';
                 }
