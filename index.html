@@ -358,9 +358,22 @@
         // ===== LISTENERS DE EVENTOS =====
         function setupEventListeners() {
             document.getElementById('eventForm').addEventListener('submit', handleFormSubmit);
-            document.getElementById('modalOverlay').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+            
+            // Modal overlay listeners - CORRIGIDO
+            document.getElementById('modalOverlay').addEventListener('click', (e) => { 
+                if (e.target === e.currentTarget) closeModal(); 
+            });
+            
+            // NOVO: Modal de detalhes listener
+            document.getElementById('eventDetailModal').addEventListener('click', (e) => { 
+                if (e.target === e.currentTarget) closeEventDetails(); 
+            });
+            
             document.getElementById('confirmDeleteBtn').addEventListener('click', deleteEvent);
-            document.getElementById('deleteConfirmModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeDeleteConfirmation(); });
+            
+            document.getElementById('deleteConfirmModal').addEventListener('click', (e) => { 
+                if (e.target === e.currentTarget) closeDeleteConfirmation(); 
+            });
         }
 
         // ===== AUTENTICAÇÃO =====
@@ -537,10 +550,11 @@
             const plan = data.plan || { name: 'gratuito', price: 0 };
 
             const cardClickAction = isSuggestion ? '' : `onclick="showEventDetails('${id}')"`;
-
+            
+            // CORRIGIDO: Adicionado data-event-id para facilitar seleção
             const cardHTML = `
-                <div class="event-card" data-category="${data.category}" data-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}" ${cardClickAction}>
-                    ${isOwner && context === 'my-created' ? `<button class="delete-btn" onclick="event.stopPropagation(); showDeleteConfirmation('${id}')">🗑️</button>` : ''}
+                <div class="event-card" data-category="${data.category}" data-id="${id}" data-event-id="${id}" style="${isSuggestion ? 'opacity: 0.7; border-style: dashed;' : ''}" ${cardClickAction}>
+                    ${isOwner && context === 'my-created' ? `<button class="delete-btn" data-event-id="${id}">🗑️</button>` : ''}
                     ${plan.price > 0 ? `<div class="premium-badge">DESTAQUE</div>` : ''}
                     <div class="event-image" style="${imageStyle}">
                         ${data.category.toUpperCase()}
@@ -552,14 +566,41 @@
                         ${data.description ? `<p class="event-description">${data.description.substring(0, 100)}...</p>` : ''}
                         <div class="event-actions">
                             <div class="attendee-count">👥 ${attendees.length} vão</div>
-                            <button class="confirm-btn ${isAttending ? 'attending' : ''}" onclick="event.stopPropagation(); toggleAttendance('${id}')">
+                            <button class="confirm-btn ${isAttending ? 'attending' : ''}" data-event-id="${id}" data-action="toggle-attendance">
                                 ${isAttending ? '✔️ Confirmado' : 'Confirmar Presença'}
                             </button>
                         </div>
                     </div>
                 </div>
             `;
+            
             container.insertAdjacentHTML('beforeend', cardHTML);
+            
+            // CORRIGIDO: Adicionar event listeners após inserir o HTML
+            setupCardEventListeners(id, isOwner && context === 'my-created');
+        }
+
+        // NOVA FUNÇÃO: Configurar event listeners para cada card
+        function setupCardEventListeners(eventId, showDeleteBtn) {
+            // Listener para botão de confirmação de presença
+            const confirmBtn = document.querySelector(`[data-event-id="${eventId}"][data-action="toggle-attendance"]`);
+            if (confirmBtn) {
+                confirmBtn.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Previne abertura do modal de detalhes
+                    toggleAttendance(eventId);
+                });
+            }
+
+            // Listener para botão de exclusão
+            if (showDeleteBtn) {
+                const deleteBtn = document.querySelector(`.delete-btn[data-event-id="${eventId}"]`);
+                if (deleteBtn) {
+                    deleteBtn.addEventListener('click', (e) => {
+                        e.stopPropagation(); // Previne abertura do modal de detalhes
+                        showDeleteConfirmation(eventId);
+                    });
+                }
+            }
         }
 
         async function toggleAttendance(eventId) {
@@ -621,7 +662,6 @@
                 closeDeleteConfirmation();
             }
         }
-
 
         // ===== FORMULÁRIO =====
         function selectPlan(planName, price, element) {
@@ -924,3 +964,4 @@
     </script>
 </body>
 </html>
+      
